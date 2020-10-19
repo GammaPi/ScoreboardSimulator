@@ -9,7 +9,7 @@ The whole development process can be seperated into three stages. However, if we
 
 ## Requirement Analysis
 
-(Finished, [Link to our proposal](https://drive.xttech.top/s/xS5kc3kJNLY5DZF))
+(Finished, Link to our proposal [China](https://drive.xtno1.top/s/xS5kc3kJNLY5DZF),[US](https://drive.xttech.tech/s/xS5kc3kJNLY5DZF))
 
 **We'll use python to implement a simple mips simulator with scoreborading support**. We will only use winmips64 as a reference.
 
