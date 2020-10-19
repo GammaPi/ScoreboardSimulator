@@ -3,9 +3,9 @@
 The whole development process can be seperated into four stages. However, if we have time and interests, we could iterate this process.
 
 1. Requirement Analysis (Finished)
-2. Define the simulator **(By October 25th)**
+2. Define the simulator **(Ver1.0 By October 25th)**
 3. System Design (Seperate Modules and define interfaces so that we can work together) **(By October 31th)**
-4. Implementation (Coding) **(After October 31th)**
+4. Implementation (Coding) **(Planning, After October 31th)**
 
 ## Requirement Analysis
 
