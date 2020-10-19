@@ -1,6 +1,6 @@
 # 668project
 
-The whole development process can be seperated into three stages. However, if we have time and interests, we could iterate this process.
+The whole development process can be seperated into four stages. However, if we have time and interests, we could iterate this process.
 
 1. Requirement Analysis (Finished)
 2. Define the simulator **(By October 25th)**
