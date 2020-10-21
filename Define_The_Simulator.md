@@ -46,8 +46,6 @@ Hanmei 📝 I modified most of them to make it compatible to the test cases from
 | ----------- | ---- | ------ | ---- |
 | L.D         | F4   | 10($2) |      |
 | S.D         | F6   | 0($5)  |      |
-| ADDI        | F2   | F2     | 1    |
-| SUBI        | F3   | F6     | 7    |
 | ADD.D       | F2   | F2     | F1   |
 | SUB.D       | F6   | F5     | F4   |
 | MULT.D      | F3   | F4     | F2   |
