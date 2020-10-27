@@ -10,10 +10,8 @@ class Instruction:
         self.src2 = src2
         self.immed = immed # immediate number
 
-
-    # todo
     def __str__(self):
-        pass
+        return f"Instruction (op {self.op} | fu {self.fu} | dst {self.dst} | src1 {self.src1} | src2 {self.src2} | immed {self.immed})"
 
 
 
@@ -21,6 +19,8 @@ class InstructionParse:
     def __init__(self, file_path):
         self.instruction_file = file_path
         self.instructions = []
+
+        self.parse_instruction_file()
 
     def parse_instruction_file(self):
         with open(self.instruction_file, 'r') as f:
@@ -45,7 +45,7 @@ class InstructionParse:
                 #todo maybe I should change "$2" to "f2" to make it easy for post-processing?
                 current_inst = Instruction(symbols[0], inst_properties["functional_unit"], symbols[1], re.search('(.*)\((.*)\)', symbols[2]).group(2), None, re.search('(.*)\((.*)\)', symbols[2]).group(1))
         else:
-            # J type
+            #todo J type
             pass
 
         if current_inst:
