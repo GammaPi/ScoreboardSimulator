@@ -4,11 +4,13 @@
 class Config:
     functional_units = {
         "integer_alu": {"quantity": 1, "clock_cycles": 1},
-        "load_store": {"quantity": 2, "clock_cycles": 2},
+        "load_store": {"quantity": 1, "clock_cycles": 1},
         "float_add_sub": {"quantity": 1, "clock_cycles": 2},
         "float_mult": {"quantity": 2, "clock_cycles": 10},
         "float_div": {"quantity": 1, "clock_cycles": 40},
     }
+
+    register_status_size = 30
 
     instruction_list = {
         "L.D": {
@@ -70,15 +72,4 @@ class Config:
             "functional_unit": "integer_alu",
             "instruction_type": "I",
         },
-    }
-
-    stage_delay = {
-        "issue": 1,
-        "read_operands": 1,
-        "write_result": 1,
-        "update_flags": 1,
-    }
-
-    custom_inst_additional_delay = {
-        "": 0,
     }

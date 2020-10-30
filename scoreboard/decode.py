@@ -9,6 +9,7 @@ class Instruction:
         self.src1 = src1
         self.src2 = src2
         self.immed = immed # immediate number
+        self.id1 = self.id2 = self.exe = self.wb = -1 # for recording the cycle number
 
     def __str__(self):
         return f"Instruction (op {self.op} | fu {self.fu} | dst {self.dst} | src1 {self.src1} | src2 {self.src2} | immed {self.immed})"
@@ -43,7 +44,7 @@ class InstructionParse:
                 current_inst = Instruction(symbols[0], inst_properties["functional_unit"], symbols[1], symbols[2], None, symbols[3])
             elif inst_properties["functional_unit"] == "load_store":
                 #todo maybe I should change "$2" to "f2" to make it easy for post-processing?
-                current_inst = Instruction(symbols[0], inst_properties["functional_unit"], symbols[1], re.search('(.*)\((.*)\)', symbols[2]).group(2), None, re.search('(.*)\((.*)\)', symbols[2]).group(1))
+                current_inst = Instruction(symbols[0], inst_properties["functional_unit"], symbols[1], None, re.search('(.*)\((.*)\)', symbols[2]).group(2), re.search('(.*)\((.*)\)', symbols[2]).group(1))
         else:
             #todo J type
             pass
