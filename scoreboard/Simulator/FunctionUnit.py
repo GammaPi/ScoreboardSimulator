@@ -1,5 +1,3 @@
-from configure import Config
-
 """ The FunctionUnit class is for the function units of the whole system.
     5 types: integer_alu / load_store / float_add_sub / float_mult / float_div
 """
