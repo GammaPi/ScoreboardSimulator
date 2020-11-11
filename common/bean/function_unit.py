@@ -1,0 +1,12 @@
+class FunctionUnit:
+    name: str
+    busy: bool
+    op: str
+    des: str
+    fi: str
+    fj: str
+    fk: str
+    qj: str
+    qk: str
+    rj: str
+    rk: str
