@@ -11,8 +11,6 @@ The goal of version 1.0 is to meet the minimum course requirement. Remember, the
 
 The number of function units is configurable
 
-<img src="image-20201110145819420.png" alt="image-20201110145819420" style="zoom:67%;" />
-
 >  ST: I adjusted Hanmei's implementation to make it consistent with the book and course. (Book Page C-47, Slide Lesson 09, P18 ) 
 
 
