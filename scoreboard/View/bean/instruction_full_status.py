@@ -1,4 +1,4 @@
-from common.bean.instruction import Instruction
+from scoreboard.common.bean.instruction import Instruction
 
 
 class InstructionFullStatus:

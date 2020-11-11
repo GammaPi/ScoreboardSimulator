@@ -1,4 +1,4 @@
-from common.bean.function_unit_status import FunctionUnitStatus
+from scoreboard.common.bean.function_unit_status import FunctionUnitStatus
 
 
 class UIData:
