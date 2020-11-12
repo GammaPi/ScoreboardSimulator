@@ -1,266 +1,138 @@
-class Config:
+from enum import Enum
+from collections import namedtuple
+
+'''
+Simulator Hardware configuration
+'''
+
+
+class FUType(Enum):
     '''
-    Simulator Hardware configuration
+    Function Units
     '''
-    functional_units = {
-        "integer_alu": {"quantity": 1, "clock_cycles": 1},
-        "load_store": {"quantity": 1, "clock_cycles": 1},
-        "float_add_sub": {"quantity": 1, "clock_cycles": 2},
-        "float_mult": {"quantity": 2, "clock_cycles": 10},
-        "float_div": {"quantity": 1, "clock_cycles": 40},
-    }
+    # (#quantity,#clockcycles)
+    INT_ADDER = (1, 1)
+    FP_INT_MUL = (2, 10)
+    FP_ADDER = (1, 2)
+    FP_INT_DIV = (1, 40)
 
-    # todo: Change this definition to register lists.
-    register_status_size = 30
+    def __init__(self, quantity, clock_cycles):
+        self.quantity = quantity
+        self.clock_cycles = clock_cycles
 
-    # define R_TYPE 1
-    # define I_TYPE 2
-    # define J_TYPE 3
-    # define F_TYPE 4
-    # define M_TYPE 5
 
-    # define NOP 0
-    # define LOAD  1
-    # define STORE 2
-    # define REG1I 3
-    # define REG2I 4
-    # define REG2S 5
-    # define JUMP  6
-    # define JREG  7
-    # define HALT  8
-    # define REG3F 9
-    # define BRANCH 10
-    # define REG3   11
-    # define REGID  12
-    # define FLOAD  13
-    # define FSTORE 14
-    # define JREGN  15
-    # define REG2F  16
+class InstrFormat(Enum):
+    R_FORMAT = 1  # 1*
+    I_FORMAT = 2  # 2*
+    FR_FORMAT = 3  # 3*
+    FI_FORMAT = 4  # 4*
+    J_FORMAT = 5  # 5*
+    SPECIAL = 6  # 6*
 
-    # define I_SPECIAL       0x00
-    # define I_COP1          0x11
-    # define I_DOUBLE        0x11
-    # define I_MTC1          0x04
-    # define I_HALT          0x01
 
-    # define I_J             0x02
-    # define I_JAL           0x03
-    # define I_BEQ           0x04
-    # define I_BNE           0x05
-    # define I_BEQZ          0x06
-    # define I_BNEZ          0x07
+floatPointRegNum = 15
+intR_status_size = 15
 
-    # define I_DADDI         0x18
-    # define I_DADDIU        0x19
-    # define I_SLTI          0x0A
-    # define I_SLTIU         0x0B
-    # define I_ANDI          0x0C
-    # define I_ORI           0x0D
-    # define I_XORI          0x0E
-    # define I_LUI           0x0F
 
-    # define I_LB            0x20
-    # define I_LH            0x21
-    # define I_LW            0x23
-    # define I_LBU           0x24
-    # define I_LHU           0x25
-    # define I_LWU           0x27#define R_TYPE 1
-    # define I_TYPE 2
-    # define J_TYPE 3
-    # define F_TYPE 4
-    # define M_TYPE 5
+class InstrType(Enum):
+    '''
+    Instruction Type Representation.
 
-    # define NOP 0
-    # define LOAD  1
-    # define STORE 2
-    # define REG1I 3
-    # define REG2I 4
-    # define REG2S 5
-    # define JUMP  6
-    # define JREG  7
-    # define HALT  8
-    # define REG3F 9
-    # define BRANCH 10
-    # define REG3   11
-    # define REGID  12
-    # define FLOAD  13
-    # define FSTORE 14
-    # define JREGN  15
-    # define REG2F  16
+    Usage:
+        Each object contains 4 information. Take InstrType.LW as an example:
+        1.If you want to know which function unit can execute LW command :  InstrType.LW.funcUnit
+        2.If you want to know what's the format of LW : InstrType.LW.instFormat
+        3.If you want to know what's the op code of LW : InstrType.LW.opCode
+        4.If you want to know what's the op name of LW : InstrType.LW.opName (Which should of-course be the enum value LW)
 
-    # define I_SPECIAL       0x00
-    # define I_COP1          0x11
-    # define I_DOUBLE        0x11
-    # define I_MTC1          0x04
-    # define I_HALT          0x01
+        You can construct any InstrType object using it's property:
+        1.If you want to construct InstrType USING op name (Perfect for type comparison) : InstrType.LW
+        2.If you want to construct InstrType FROM op name (Perfect for parsing op name) : InstrType['LW']
+        3.If you want to construct InstrType using op code (Perfect for parsing op code) : InstrType[0x01]
 
-    # define I_J             0x02
-    # define I_JAL           0x03
-    # define I_BEQ           0x04
-    # define I_BNE           0x05
-    # define I_BEQZ          0x06
-    # define I_BNEZ          0x07
+        If there's a point in op name, you have to replace it with _ when constructing InstrType USING op name
+        eg: You could only use InstrType.L_D
+        But you could construct InstrType FROM the actual op name InstrType[L.D]
 
-    # define I_DADDI         0x18
-    # define I_DADDIU        0x19
-    # define I_SLTI          0x0A
-    # define I_SLTIU         0x0B
-    # define I_ANDI          0x0C
-    # define I_ORI           0x0D
-    # define I_XORI          0x0E
-    # define I_LUI           0x0F
+        op name is case-insensitive
+    '''
+    # Add new op as (OPNAME=(funcUnitType, instFormat, opCode,[opName]))
+    NOP = (None, InstrFormat.SPECIAL, 60)
+    HALT = (None, InstrFormat.SPECIAL, 61)
 
-    # define I_LB            0x20
-    # define I_LH            0x21
-    # define I_LW            0x23
-    # define I_LBU           0x24
-    # define I_LHU           0x25
-    # define I_LWU           0x27
-    # define I_SB            0x28
-    # define I_SH            0x29
-    # define I_SW            0x2B
-    # define I_L_D           0x35
-    # define I_S_D           0x3D
-    # define I_LD            0x37
-    # define I_SD            0x3F
+    LW = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 20)
+    SW = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 21)
+    L_D = (FUType.FP_ADDER, InstrFormat.FI_FORMAT, 40, 'L.D')
+    S_D = (FUType.FP_ADDER, InstrFormat.FI_FORMAT, 41, 'S.D')
 
-    # define R_NOP           0x00
-    # define R_JR            0x08
-    # define R_JALR          0x09
-    # define R_MOVZ          0x0A
-    # define R_MOVN          0x0B
+    ADD_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 30, 'ADD.D')
+    SUB_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 31, 'SUB.D')
+    MUL_D = (FUType.FP_INT_MUL, InstrFormat.FR_FORMAT, 32, 'MUL.D')
+    DIV_D = (FUType.FP_INT_DIV, InstrFormat.FR_FORMAT, 33, 'DIV.D')
 
-    # define R_DSLLV         0x14
-    # define R_DSRLV         0x16
-    # define R_DSRAV         0x17
-    # define R_DMUL          0x1C
-    # define R_DMULU         0x1D
-    # define R_DDIV          0x1E
-    # define R_DDIVU         0x1F
+    DADD = (FUType.INT_ADDER, InstrFormat.R_FORMAT, 10)
+    DADDI = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 22)
+    DSUB = (FUType.INT_ADDER, InstrFormat.R_FORMAT, 11)
+    DSUBI = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 23)
+    DMUL = (FUType.FP_INT_MUL, InstrFormat.R_FORMAT, 12)
+    DDIV = (FUType.FP_INT_DIV, InstrFormat.R_FORMAT, 13)
 
-    # define R_AND           0x24
-    # define R_OR            0x25
-    # define R_XOR           0x26
-    # define R_SLT           0x2A
-    # define R_SLTU          0x2B
-    # define R_DADD          0x2C
-    # define R_DADDU         0x2D
-    # define R_DSUB          0x2E
-    # define R_DSUBU         0x2F
+    BEQ = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 24)
+    BNE = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 25)
+    BENZ = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 26)
 
-    # define R_DSLL          0x38
-    # define R_DSRL          0x3A
-    # define R_DSRA          0x3B
+    J = (FUType.INT_ADDER, InstrFormat.J_FORMAT, 50)
 
-    # define F_ADD_D         0x00
-    # define F_SUB_D         0x01
-    # define F_MUL_D         0x02
-    # define F_DIV_D         0x03
-    # define F_MOV_D         0x06
-    # define F_CVT_W_D       0x24
-    # define F_CVT_L_D       0x25
-    # define I_SB            0x28
-    # define I_SH            0x29
-    # define I_SW            0x2B
-    # define I_L_D           0x35
-    # define I_S_D           0x3D
-    # define I_LD            0x37
-    # define I_SD            0x3F
+    def __init__(self, funcUnit, instFormat, opCode, opName=None):
+        self.funcUnit = funcUnit
+        self.instFormat = instFormat
+        self.opCode = opCode
+        if opName is None:
+            # Use Enum name
+            self.opName = self.name.upper()
+        else:
+            # Use Specified name
+            self.opName = opName.upper()
 
-    # define R_NOP           0x00
-    # define R_JR            0x08
-    # define R_JALR          0x09
-    # define R_MOVZ          0x0A
-    # define R_MOVN          0x0B
+    def __new__(cls, *values):
+        '''
+        A hack that enable this calss to create instance by opCode
+        (ignoring details won't prohibit the usage of this class)
+        '''
+        obj = object.__new__(cls)
+        if values[2] in cls._member_map_:
+            raise TypeError('Attempted to reuse opcode: %r' % values[-1])
+        # link opcode with InstrType object
+        cls._member_map_[values[2]] = obj
+        if len(values) == 4:
+            cls._member_map_[values[3]] = obj
 
-    # define R_DSLLV         0x14
-    # define R_DSRLV         0x16
-    # define R_DSRAV         0x17
-    # define R_DMUL          0x1C
-    # define R_DMULU         0x1D
-    # define R_DDIV          0x1E
-    # define R_DDIVU         0x1F
+        # Make output possible
+        obj._all_values = values
 
-    # define R_AND           0x24
-    # define R_OR            0x25
-    # define R_XOR           0x26
-    # define R_SLT           0x2A
-    # define R_SLTU          0x2B
-    # define R_DADD          0x2C
-    # define R_DADDU         0x2D
-    # define R_DSUB          0x2E
-    # define R_DSUBU         0x2F
+        return obj
 
-    # define R_DSLL          0x38
-    # define R_DSRL          0x3A
-    # define R_DSRA          0x3B
+    def __repr__(self):
+        '''
+            Output correct representation
+        '''
+        return '<%s.%s: %s>' % (
+            self.__class__.__name__,
+            self._name_,
+            ', '.join([repr(v) for v in self._all_values]),
+        )
 
-    # define F_ADD_D         0x00
-    # define F_SUB_D         0x01
-    # define F_MUL_D         0x02
-    # define F_DIV_D         0x03
-    # define F_MOV_D         0x06
-    # define F_CVT_W_D       0x24
-    # define F_CVT_L_D       0x25
 
-    instruction_list = {
-        "L.D": {
-            "functional_unit": "load_store",
-            "instruction_type": "I",
-        },
+# [InstrType Related Code Begin]
+# Replace InstrType.__class__.__getitem__ in order to automatically uppercase opname
+__oriGetItem = InstrType.__class__.__getitem__
 
-        "S.D": {
-            "functional_unit": "load_store",
-            "instruction_type": "I",
-        },
 
-        "MUL.D": {
-            "functional_unit": "float_mult",
-            "instruction_type": "R",
-        },
+def __UpperCaseGetItem(cls, key):
+    if type(key) == str:
+        key = key.upper()
+    return __oriGetItem(cls, key)
 
-        "DIV.D": {
-            "functional_unit": "float_div",
-            "instruction_type": "R",
-        },
 
-        "ADD.D": {
-            "functional_unit": "float_add_sub",
-            "instruction_type": "R",
-        },
-
-        "SUB.D": {
-            "functional_unit": "float_add_sub",
-            "instruction_type": "R",
-        },
-
-        "LW": {
-            "functional_unit": "integer_alu",
-            "instruction_type": "I",
-        },
-
-        "SW": {
-            "functional_unit": "integer_alu",
-            "instruction_type": "I",
-        },
-
-        "ADDI": {
-            "functional_unit": "integer_alu",
-            "instruction_type": "I",
-        },
-
-        "ADD": {
-            "functional_unit": "integer_alu",
-            "instruction_type": "R",
-        },
-
-        "SUB": {
-            "functional_unit": "integer_alu",
-            "instruction_type": "R",
-        },
-
-        "BEQ": {
-            "functional_unit": "integer_alu",
-            "instruction_type": "I",
-        },
-    }
+InstrType.__class__.__getitem__ = __UpperCaseGetItem
+# [InstrType Related Code End]
