@@ -35,7 +35,9 @@ F\*: 32 \* 32-bit Float Point Register
 
 PC: 1 \* 32-bit Program Counter
 
-MAR: 1 \* 32-bit Memory Address Register
+IAR: 1 \* 32-bit Instruction Memory Address Register
+
+DAR: 1 \* 32-bit Data Memory Address Register
 
 IR: Instruction Register
 
