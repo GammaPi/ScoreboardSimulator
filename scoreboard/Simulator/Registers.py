@@ -1,6 +1,5 @@
 import enum
 from abc import ABCMeta, abstractmethod
-from Simulator.Bus import AbstractBus
 from enum import Enum
 
 
