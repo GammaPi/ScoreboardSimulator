@@ -35,6 +35,8 @@ class Bus(AbstractBus):
         return self.value
 
     def write(self, value):
+        if self.BUSY:
+            raise BusBusyException()
         self.BUSY = True
         self.value = value
         self.BUSY = False
