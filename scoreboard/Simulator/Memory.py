@@ -11,7 +11,7 @@ class AbstractMemory(metaclass=ABCMeta):
         """
         Initialize simulator
         :param name:Name of the memory unit
-        :param totalSize: The size of this memory (In Bytes)
+        :param totalSize: The size of this memory (In Words, one word is 32 bits)
         """
         self.name = name
         self.totalSize = totalSize
@@ -46,13 +46,13 @@ class DictMemory(AbstractMemory):
             # One byte
             if location < 0 or location >= self.totalSize:
                 raise AccessViolation('Location %d causes access violation in memory %s' % (location, self.name))
-            memEntry = Memory._MemEntry(value, location, location)
+            memEntry = DictMemory._MemEntry(value, location, location)
             self.memDict[location] = memEntry
 
         elif type(value) is float:
             # Two bytes
             if location < 0 or location + 1 >= self.totalSize:
                 raise AccessViolation('Location %d causes access violation in memory %s' % (location, self.name))
-            memEntry = Memory._MemEntry(value, location, location + 1)
+            memEntry = DictMemory._MemEntry(value, location, location + 1)
             self.memDict[location] = memEntry
             self.memDict[location + 1] = memEntry
