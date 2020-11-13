@@ -11,7 +11,7 @@ class FUType(Enum):
     Function Units
     '''
     # (#quantity,#clockcycles)
-    INT_ADDER = (1, 1)
+    INT = (1, 1)
     FP_INT_MUL = (2, 10)
     FP_ADDER = (1, 2)
     FP_INT_DIV = (1, 40)
@@ -30,8 +30,14 @@ class InstrFormat(Enum):
     SPECIAL = 6  # 6*
 
 
-floatPointRegNum = 15
-intR_status_size = 15
+GP_FLOAT_REG_NUM = 15
+GP_INT_REG_NUM = 15
+
+DATA_BUS_WIDTH = 32  # Data bus 32 bits
+INST_BUS_WIDTH = 32  # Instruction bus 32 bits
+
+DATA_MEM_SIZE=2560
+INSTR_MEM_SIZE=256
 
 
 class InstrType(Enum):
