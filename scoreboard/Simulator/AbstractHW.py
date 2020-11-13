@@ -8,10 +8,20 @@ This file stores abstract classes that represents hardware. And some universal c
 '''
 
 
+class RegType(Enum):
+    GP_FLOAT = 1
+    GP_INT = 2
+    SP_PC = 3
+    SP_IR = 5
+    SP_IAR = 7
+    SP_DAR = 8
+
+
 class AbstractRegister(metaclass=ABCMeta):
-    def __init__(self, name, numOfBits):
+    def __init__(self, name, numOfBits, regType: RegType):
         self.numOfBits = numOfBits
         self.name = name
+        self.type = regType
 
     @abstractmethod
     def read(self):
@@ -20,15 +30,6 @@ class AbstractRegister(metaclass=ABCMeta):
     @abstractmethod
     def write(self, value):
         pass
-
-
-class RegType(Enum):
-    GP_FLOAT = 1
-    GP_INT = 2
-    SP_PC = 3
-    SP_IR = 5
-    SP_IAR = 7
-    SP_DAR = 8
 
 
 class AbstractStateMachine:
@@ -58,7 +59,8 @@ class Instruction:
     We use it to store representation of all kinds of instructions thanks to python's flexible variable type.
     '''
 
-    def __init__(self, instrType: Config.InstrType, dstReg: tuple, src1Reg: tuple, src2Reg: tuple, immed,
+    def __init__(self, instrType: Config.InstrType, dstReg: AbstractRegister, src1Reg: AbstractRegister,
+                 src2Reg: AbstractRegister, immed,
                  stateMachine: AbstractStateMachine):
         """
         :param instrType: Type of instruction
