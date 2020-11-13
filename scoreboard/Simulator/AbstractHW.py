@@ -3,6 +3,10 @@ from enum import Enum
 
 from Simulator import Config
 
+'''
+This file stores abstract classes that represents hardware. And some universal classes used by those hardware.
+'''
+
 
 class AbstractRegister(metaclass=ABCMeta):
     def __init__(self, name, numOfBits):
@@ -27,13 +31,58 @@ class RegType(Enum):
     SP_DAR = 8
 
 
+class AbstractStateMachine:
+
+    @abstractmethod
+    def next(self):
+        pass
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+    @abstractmethod
+    @property
+    def curState(self):
+        pass
+
+    @abstractmethod
+    @curState.setter
+    def curState(self, newState, curCounter=0):
+        pass
+
+
+class Instruction:
+    '''
+    A representation of instruction that can be executed by the simulator
+    We use it to store representation of all kinds of instructions thanks to python's flexible variable type.
+    '''
+
+    def __init__(self, instrType: Config.InstrType, dstReg: tuple, src1Reg: tuple, src2Reg: tuple, immed,
+                 stateMachine: AbstractStateMachine):
+        """
+        :param instrType: Type of instruction
+        :param dstReg: A tuple of (AbstractHW.RegType,regId). RegId maybe none.
+        :param src1Reg: A tuple of (AbstractHW.RegType,regId). RegId maybe none.
+        :param src2Reg: A tuple of (AbstractHW.RegType,regId). RegId maybe none.
+        :param immed: An immediate number
+        :param stateMachine: A statemachine. Useful for recording instruction state. But have no actual benefit for the simulator
+        """
+        self.instrType = instrType
+        self.dstReg = dstReg
+        self.src1Reg = src1Reg
+        self.src2Reg = src2Reg
+        self.immed = immed  # immediate number
+        self.stateMachine = stateMachine
+
+
 class AbstractFunctionUnit(metaclass=ABCMeta):
-    def __init__(self, type: Config.FUType, id):
+    def __init__(self, type: Config.FUType, id, instruction: Instruction):
         self.type = type
         self.id = id
         self.ENABLE = False  # Enable Signal
         self._val = None
-        self.opCode: int = None  # FU will perform corresponding calculation based on opCode
+        self.instruction: Instruction = instruction  # The instruction representation this FU is executing.
 
     @abstractmethod
     def tick(self):
