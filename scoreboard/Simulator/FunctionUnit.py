@@ -95,7 +95,7 @@ class FPAdderFU(PsedoFunctionUnit):
 
         :param id: Identifier for this function unit
         """
-        super().__init__(Config.FUType.INT, id)
+        super().__init__(Config.FUType.FP_ADDER, id)
         self.A = None  # A port
         self.B = None  # B port
 
@@ -124,7 +124,7 @@ class FPIntMulFU(PsedoFunctionUnit):
 
         :param id: Identifier for this function unit
         """
-        super().__init__(Config.FUType.INT, id)
+        super().__init__(Config.FUType.FP_INT_MUL, id)
         self.A = None  # A port
         self.B = None  # B port
 
@@ -153,7 +153,7 @@ class FPIntDivFU(PsedoFunctionUnit):
 
         :param id: Identifier for this function unit
         """
-        super().__init__(Config.FUType.INT, id)
+        super().__init__(Config.FUType.FP_INT_DIV, id)
         self.A = None  # A port
         self.B = None  # B port
 

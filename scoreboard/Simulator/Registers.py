@@ -24,10 +24,22 @@ class IntRegister(GPReigster):
     def __init__(self, name, regId):
         super().__init__(name, 32, RegType.GP_INT, regId)
 
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)
+
 
 class FloatRegister(GPReigster):
     def __init__(self, name, regId):
         super().__init__(name, 32, RegType.GP_FLOAT, regId)
+
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)
 
 
 class SPReigster(AbstractRegister):
@@ -35,11 +47,23 @@ class SPReigster(AbstractRegister):
         super().__init__(name, numOfBits, regType)
         self.value = 0
 
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)
+
 
 class PC(SPReigster):
     def __init__(self, name):
         super().__init__(name, 32, RegType.SP_PC)
         self.type = RegType.SP_PC
+
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)
 
 
 class IAR(SPReigster):
@@ -47,14 +71,32 @@ class IAR(SPReigster):
         super().__init__(name, 32, RegType.SP_IAR)
         self.type = RegType.SP_IAR
 
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)
+
 
 class DAR(SPReigster):
     def __init__(self, name):
         super().__init__(name, 32, RegType.SP_DAR)
         self.type = RegType.SP_DAR
 
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)
+
 
 class IR(SPReigster):
     def __init__(self, name):
         super().__init__(name, 32, RegType.SP_IR)
         self.type = RegType.SP_IR
+
+    def read(self):
+        return super().read()
+
+    def write(self, value):
+        return super().write(value)

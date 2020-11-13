@@ -42,12 +42,10 @@ class AbstractStateMachine:
     def reset(self):
         pass
 
-    @abstractmethod
     @property
     def curState(self):
         pass
 
-    @abstractmethod
     @curState.setter
     def curState(self, newState, curCounter=0):
         pass
@@ -79,12 +77,12 @@ class Instruction:
 
 
 class AbstractFunctionUnit(metaclass=ABCMeta):
-    def __init__(self, type: Config.FUType, id, instruction: Instruction):
+    def __init__(self, type: Config.FUType, id):
         self.type = type
         self.id = id
         self.ENABLE = False  # Enable Signal
         self._outputVal = None
-        self.instruction: Instruction = instruction  # The instruction representation this FU is executing.
+        self.instruction: Instruction = None  # The instruction representation this FU is executing.
 
     @abstractmethod
     def tick(self):
@@ -95,7 +93,6 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     @property
     def outputVal(self):
         return self._outputVal
