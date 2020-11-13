@@ -1,29 +1,4 @@
-import enum
-from abc import ABCMeta, abstractmethod
-from enum import Enum
-
-
-class RegType(Enum):
-    GP_FLOAT = 1
-    GP_INT = 2
-    SP_PC = 3
-    SP_IR = 5
-    SP_IAR = 7
-    SP_DAR = 8
-
-
-class AbstractRegister(metaclass=ABCMeta):
-    def __init__(self, name, numOfBits):
-        self.numOfBits = numOfBits
-        self.name = name
-
-    @abstractmethod
-    def read(self):
-        pass
-
-    @abstractmethod
-    def write(self, value):
-        pass
+from Simulator.AbstractHW import AbstractRegister, RegType
 
 
 class GPReigster(AbstractRegister):

@@ -1,27 +1,8 @@
-from abc import ABCMeta, abstractmethod
+from Simulator.AbstractHW import AbstractBus
 
 
 class BusBusyException(Exception):
     pass
-
-
-class AbstractBus(metaclass=ABCMeta):
-    def __init__(self, name, numBits):
-        """
-        :param name: Bus name
-        :param numBits: Bus Width
-        """
-        self.name = name
-        self.numBits = numBits
-        self.BUSY = False
-
-    @abstractmethod
-    def read(self):
-        pass
-
-    @abstractmethod
-    def write(self, value):
-        pass
 
 
 # todo: Process binary rather than actual python data structure

@@ -1,28 +1,8 @@
-from abc import ABCMeta, abstractmethod
-from Simulator.Bus import AbstractBus
+from Simulator.AbstractHW import AbstractMemory
 
 
 class AccessViolation(Exception):
     pass
-
-
-class AbstractMemory(metaclass=ABCMeta):
-    def __init__(self, name: str, totalSize: int):
-        """
-        Initialize simulator
-        :param name:Name of the memory unit
-        :param totalSize: The size of this memory (In Words, one word is 32 bits)
-        """
-        self.name = name
-        self.totalSize = totalSize
-
-    @abstractmethod
-    def read(self, location: int):
-        pass
-
-    @abstractmethod
-    def write(self, location: int, value):
-        pass
 
 
 class DictMemory(AbstractMemory):
