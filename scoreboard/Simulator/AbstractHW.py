@@ -89,7 +89,8 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
     @abstractmethod
     def tick(self):
         """
-        To perform correct calculation. CU has to set opCode and ENABLE attribute first!!!
+        To perform correct calculation. CU has to set instruction and ENABLE attribute first!!!
+        This function only performs exec stage. Operands are assigned by CU.
         :return Return a boolean to indicate if execution has finished. Return None if not enabled.
         """
         pass
