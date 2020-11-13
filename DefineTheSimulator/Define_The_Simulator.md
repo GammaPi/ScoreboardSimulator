@@ -166,7 +166,8 @@ Instruction Formats:
 | ||||||
 | BEQ reg,reg,imm| BEQ R1,R2,-48  |branch if pair of registers are not equal|I-Format|INT|24|
 | BNE reg,reg,imm| BNE R2,R4,4  |branch if pair of registers are not equal|I-Format|INT|25|
-| BNEZ reg,imm| BNE R1,loop  |branch if reg is zero|I-Format|INT|26|
+| BEQZ reg,imm| BEQZ R1,loop |branch if reg is zero|I-Format|INT|26|
+| BNEZ reg,imm| BNEZ R1,loop |branch if reg is not zero|I-Format|INT|27|
 | ||||||
 | J imm | J 1231 | jump to immediate address         |j-Format|INT|50|
 | ||||||

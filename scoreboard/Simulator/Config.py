@@ -85,7 +85,8 @@ class InstrType(Enum):
 
     BEQ = (FUType.INT, InstrFormat.I_FORMAT, 24)
     BNE = (FUType.INT, InstrFormat.I_FORMAT, 25)
-    BENZ = (FUType.INT, InstrFormat.I_FORMAT, 26)
+    BEQZ = (FUType.INT, InstrFormat.I_FORMAT, 26)
+    BNEZ = (FUType.INT, InstrFormat.I_FORMAT, 27)
 
     J = (FUType.INT, InstrFormat.J_FORMAT, 50)
 
