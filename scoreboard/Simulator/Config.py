@@ -68,8 +68,8 @@ class InstrType(Enum):
 
     LW = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 20)
     SW = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 21)
-    L_D = (FUType.FP_ADDER, InstrFormat.FI_FORMAT, 40, 'L.D')
-    S_D = (FUType.FP_ADDER, InstrFormat.FI_FORMAT, 41, 'S.D')
+    L_D = (FUType.INT_ADDER, InstrFormat.FI_FORMAT, 40, 'L.D')
+    S_D = (FUType.INT_ADDER, InstrFormat.FI_FORMAT, 41, 'S.D')
 
     ADD_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 30, 'ADD.D')
     SUB_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 31, 'SUB.D')

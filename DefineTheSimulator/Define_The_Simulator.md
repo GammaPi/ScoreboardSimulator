@@ -149,8 +149,8 @@ Instruction Formats:
 | LW reg,imm(reg) |LW R2,0(R4)|load 32-bit word|I-Format|INT|20|
 | SW reg,imm(reg)|SW R5 8(R4)|store 32-bit word|I-Format|INT|21|
 | ||||||
-| L.D freg,imm(reg) |L.D F4,10(R2)|load 64-bit floating-point|FI-Format|FP Adder|40|
-| S.D freg,imm(reg)|S.D F6,0(R5)|store 64-bit floating-point|FI-Format|FP Adder|41|
+| L.D freg,imm(reg) |L.D F4,10(R2)|load 64-bit floating-point|FI-Format|INT|40|
+| S.D freg,imm(reg)|S.D F6,0(R5)|store 64-bit floating-point|FI-Format|INT|41|
 | ||||||
 | ADD.D freg,freg,freg| ADD.D F2,F2,F1  |add floating-point|FR-Format|FP Adder|30|
 | SUB.D freg,freg,freg | SUB.D F6,F5,F4 |subtract floating-point|FR-Format|FP Adder|31|
