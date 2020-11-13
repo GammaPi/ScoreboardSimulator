@@ -83,7 +83,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         self.type = type
         self.id = id
         self.ENABLE = False  # Enable Signal
-        self._val = None
+        self._outputVal = None
         self.instruction: Instruction = instruction  # The instruction representation this FU is executing.
 
     @abstractmethod
@@ -97,11 +97,11 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
 
     @abstractmethod
     @property
-    def val(self):
-        return self._val
+    def outputVal(self):
+        return self._outputVal
 
-    @val.setter
-    def val(self):
+    @outputVal.setter
+    def outputVal(self):
         raise AttributeError('Cannot set val because it is readonly')
 
 
