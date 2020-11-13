@@ -36,8 +36,8 @@ GP_INT_REG_NUM = 15
 DATA_BUS_WIDTH = 32  # Data bus 32 bits
 INST_BUS_WIDTH = 32  # Instruction bus 32 bits
 
-DATA_MEM_SIZE=2560
-INSTR_MEM_SIZE=256
+DATA_MEM_SIZE = 2560
+INSTR_MEM_SIZE = 256
 
 
 class InstrType(Enum):
@@ -66,28 +66,28 @@ class InstrType(Enum):
     NOP = (None, InstrFormat.SPECIAL, 60)
     HALT = (None, InstrFormat.SPECIAL, 61)
 
-    LW = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 20)
-    SW = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 21)
-    L_D = (FUType.INT_ADDER, InstrFormat.FI_FORMAT, 40, 'L.D')
-    S_D = (FUType.INT_ADDER, InstrFormat.FI_FORMAT, 41, 'S.D')
+    LW = (FUType.INT, InstrFormat.I_FORMAT, 20)
+    SW = (FUType.INT, InstrFormat.I_FORMAT, 21)
+    L_D = (FUType.INT, InstrFormat.FI_FORMAT, 40, 'L.D')
+    S_D = (FUType.INT, InstrFormat.FI_FORMAT, 41, 'S.D')
 
     ADD_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 30, 'ADD.D')
     SUB_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 31, 'SUB.D')
     MUL_D = (FUType.FP_INT_MUL, InstrFormat.FR_FORMAT, 32, 'MUL.D')
     DIV_D = (FUType.FP_INT_DIV, InstrFormat.FR_FORMAT, 33, 'DIV.D')
 
-    DADD = (FUType.INT_ADDER, InstrFormat.R_FORMAT, 10)
-    DADDI = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 22)
-    DSUB = (FUType.INT_ADDER, InstrFormat.R_FORMAT, 11)
-    DSUBI = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 23)
+    DADD = (FUType.INT, InstrFormat.R_FORMAT, 10)
+    DADDI = (FUType.INT, InstrFormat.I_FORMAT, 22)
+    DSUB = (FUType.INT, InstrFormat.R_FORMAT, 11)
+    DSUBI = (FUType.INT, InstrFormat.I_FORMAT, 23)
     DMUL = (FUType.FP_INT_MUL, InstrFormat.R_FORMAT, 12)
     DDIV = (FUType.FP_INT_DIV, InstrFormat.R_FORMAT, 13)
 
-    BEQ = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 24)
-    BNE = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 25)
-    BENZ = (FUType.INT_ADDER, InstrFormat.I_FORMAT, 26)
+    BEQ = (FUType.INT, InstrFormat.I_FORMAT, 24)
+    BNE = (FUType.INT, InstrFormat.I_FORMAT, 25)
+    BENZ = (FUType.INT, InstrFormat.I_FORMAT, 26)
 
-    J = (FUType.INT_ADDER, InstrFormat.J_FORMAT, 50)
+    J = (FUType.INT, InstrFormat.J_FORMAT, 50)
 
     def __init__(self, funcUnit, instFormat, opCode, opName=None):
         self.funcUnit = funcUnit

@@ -157,18 +157,18 @@ Instruction Formats:
 | MUL.D freg,freg,freg| MUL.D F3,F4,F2 |multiply floating-point|FR-Format|FP/Integer Multiplier|32|
 | DIV.D freg,freg,freg| DIV.D F1,F1,F1  |divide floating-point|FR-Format|FP/Integer Divider|33|
 | ||||||
-| DADD reg,reg,reg| DADD R5,R2,R3 | add integers|R-Format|Integer|10|
-| DADDI reg,reg,imm| DADDI R2,R2,1 | add immediate|I-Format|Integer|22|
-| DSUB reg,reg,reg| DSUB R5,R2,R3 | subtract integers|R-Format|Integer|11|
-| DSUBI reg,reg,imm| DSUBI R3,R6,7 | subtract immediate|I-Format|Integer|23|
+| DADD reg,reg,reg| DADD R5,R2,R3 | add integers|R-Format|INT|10|
+| DADDI reg,reg,imm| DADDI R2,R2,1 | add immediate|I-Format|INT|22|
+| DSUB reg,reg,reg| DSUB R5,R2,R3 | subtract integers|R-Format|INT|11|
+| DSUBI reg,reg,imm| DSUBI R3,R6,7 | subtract immediate|I-Format|INT|23|
 | DMUL freg,freg,freg| DMUL R3,R4,R2 |multiply intergers|R-Format|FP/Integer Multiplier|12|
 | DDIV freg,freg,freg| DDIV R1,R1,R1  |divide integers|R-Format|FP/Integer Divider|13|
 | ||||||
-| BEQ reg,reg,imm| BEQ R1,R2,-48  |branch if pair of registers are not equal|I-Format|Integer|24|
-| BNE reg,reg,imm| BNE R2,R4,4  |branch if pair of registers are not equal|I-Format|Integer|25|
-| BNEZ reg,imm| BNE R1,loop  |branch if reg is zero|I-Format|Integer|26|
+| BEQ reg,reg,imm| BEQ R1,R2,-48  |branch if pair of registers are not equal|I-Format|INT|24|
+| BNE reg,reg,imm| BNE R2,R4,4  |branch if pair of registers are not equal|I-Format|INT|25|
+| BNEZ reg,imm| BNE R1,loop  |branch if reg is zero|I-Format|INT|26|
 | ||||||
-| J imm | J 1231 | jump to immediate address         |j-Format|Integer|50|
+| J imm | J 1231 | jump to immediate address         |j-Format|INT|50|
 | ||||||
 | NOP | NOP | No operation    | Special ||60|
 | HALT | HALT | stops the program    |Special||61|
