@@ -33,6 +33,10 @@ class MultiCycleDFA(AbstractStateMachine):
             self.curState = toState
         return self.curState
 
+    def peek(self):
+        toState, transferCycle = self.adjTable[self.curState]
+        return toState
+
     @property
     def curState(self):
         return self._curState

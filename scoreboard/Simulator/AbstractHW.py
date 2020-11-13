@@ -39,7 +39,7 @@ class AbstractStateMachine:
         pass
 
     @abstractmethod
-    def reset(self):
+    def peek(self):
         pass
 
     @property
