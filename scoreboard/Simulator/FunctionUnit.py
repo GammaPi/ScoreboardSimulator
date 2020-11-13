@@ -1,91 +1,173 @@
-""" The FunctionUnit class is for the function units of the whole system.
-    5 types: integer_alu / load_store / float_add_sub / float_mult / float_div
-"""
-class FunctionUnit:
-    def __init__(self, type, cycles):
-        self.type = type
-        self.cycles = self.remaining_cycles = cycles
-        self.busy = False
-        self.operation = None # operation that use the functional unit
-        self.fi = self.fj = self.fk = None
-        self.qj = self.qk = None
-        self.rj = self.rk = True
-        self.instruction_idx = -1 # record the index of the issued instruction
-        self.lock = False # handle the wb collision
+from abc import ABCMeta, abstractmethod
 
-    '''Display the functional unit status'''
-    def __str__(self):
-        if not self.busy:
-            return f"Func Unit (type {self.type} | busy {self.busy} | cycles {self.cycles} )"
+from Simulator import Config
+from Simulator.StateMachine import MultiCycleDFA
+from Simulator.AbstractHW import AbstractFunctionUnit, AbstractMemory, AbstractBus, AbstractRegister, Instruction, \
+    RegType
+
+'''
+Function unit is a sub-component inside ControlUnit.
+'''
+
+
+class PsedoFunctionUnit(AbstractFunctionUnit):
+    '''
+    This Function Unit don't perform actual binary calculation.
+    It only maintains execution states for a certain amount of cycles according to simulator definition, and perform
+    one calculation in the last cycle to simulate result.
+    :param id: Identifier for this function unit
+    '''
+
+    def __init__(self, fuType: Config.FUType, id):
+        super().__init__(fuType, id)
+        self.stateMachine = MultiCycleDFA([(False, True, fuType.clock_cycles)],
+                                          False)  # Use statemachine to inidicate if an execution has finished
+
+    def tick(self):
+        # todo: Do Actual Binary calculation
+        if self.ENABLE:
+            finished: bool = self.stateMachine.next()
+            if finished:
+                self.stateMachine.curState = False
+            return finished
         else:
-            return f"Func Unit (type {self.type} | busy {self.busy} | cycles {self.cycles} \n" \
-                f"operation {self.operation} | remaining cycles {self.remaining_cycles} \n" \
-                f"fi {self.fi} | fj {self.fj} | fk {self.fk} \n" \
-                f"qj {self.qj} | qk {self.qk} \n" \
-                f"rj {self.rj} | rk {self.rk})"
-
-    '''Reset the FU after the instruction in use has completed'''
-    def clear(self):
-        self.operation = None
-        self.remaining_cycles = self.cycles
-        self.fi = self.fj = self.fk = None
-        self.qj = self.qk = None
-        self.rj = self.rk = True
-        self.instruction_idx = -1
-        self.busy = False
-
-    '''Issue an instruction'''
-    def issue(self, instruction, register_status):
-        # No need to check! since can_issue already checks for that
-        # #if current FN is available, we can issue an instruction
-        # if self.busy or self.type != instruction.fu:
-        #     return False
-
-        #1.set Busy status
-        self.busy = True
-
-        #2.set the Operation type
-        self.operation = instruction.op
-
-        #3.set fi, fj, fk
-        # todo Implement the real calculation: I should change them to the true value when no RAW hazard
-        self.fi, self.fj, self.fk = instruction.dst, instruction.src1, instruction.src2
-
-        #4.set qj, qk, rj, rk
-        index = int(self.fj[1:]) if self.fj else None #the 1nd operand can be None - load / store
-        if index != None and register_status[index]:
-            self.qj = register_status[index]
-            self.rj = False
-
-        index = int(self.fk[1:]) if self.fk else None #the 2nd operand can be None - ALUi
-        if index != None and register_status[index]:
-            self.qk = register_status[index]
-            self.rk = False
-
-        #5.set immediate value
-        if self.type == "load_store": #then qk is immediate
-            self.fj = instruction.immed
-        elif instruction.immed: #then it's I type
-            self.fk = instruction.immed
+            return None
 
 
-    '''Current instruction gets the operand value'''
-    def read_operands(self):
-        #reset the rj, rk for determining the execution stage
-        self.rj = False
-        self.rk = False
+class IntFU(PsedoFunctionUnit):
+    '''
+     	Suitable for any kinds of operations on integers. eg: Integer Add/SUB ,Branch. Load and Stores
+    '''
+
+    def __init__(self, id):
+        """
+        See PsedoFunctionUnit for more info.
+
+        :param id: Identifier for this function unit
+        """
+        super().__init__(Config.FUType.INT, id)
+        self.A = None  # A port
+        self.B = None  # B port
+
+    def tick(self):
+        finished = super().tick()
+
+        # Psedo calculation in the last cycle based on opCode
+        if finished == True:
+            if self.instruction.instrType == Config.InstrType.LW:
+                self._outputVal = self.A + self.B  # imm + src1
+            elif self.instruction.instrType == Config.InstrType.SW:
+                self._outputVal = self.A + self.B  # imm + dst
+            if self.instruction.instrType == Config.InstrType.L_D:
+                self._outputVal = self.A + self.B  # imm + src1
+            elif self.instruction.instrType == Config.InstrType.S_D:
+                self._outputVal = self.A + self.B  # imm + dst
+            elif self.instruction.instrType == Config.InstrType.DADD:
+                self._outputVal = self.A + self.B  # src1 + src2
+            elif self.instruction.instrType == Config.InstrType.DADDI:
+                self._outputVal = self.A + self.B  # src1+immed
+            elif self.instruction.instrType == Config.InstrType.DSUB:
+                self._outputVal = self.A - self.B  # src1+src2
+            elif self.instruction.instrType == Config.InstrType.DSUBI:
+                self._outputVal = self.A - self.B  # src1-src2
+            elif self.instruction.instrType == Config.InstrType.BEQ:
+                self._outputVal = int(self.A == self.B)  # src1==src2?
+            elif self.instruction.instrType == Config.InstrType.BNE:
+                self._outputVal = int(self.A != self.B)  # src1!=src2?
+            elif self.instruction.instrType == Config.InstrType.BEQZ:
+                self._outputVal = int(self.A == self.B)  # src1==0?
+            elif self.instruction.instrType == Config.InstrType.BNEZ:
+                self._outputVal = int(self.A != self.B)  # src1!=0?
+            else:
+                assert False
+
+        return finished
 
 
-    def execute(self):
-        # todo I don't deal with the real calculation
-        self.remaining_cycles -= 1
+class FPAdderFU(PsedoFunctionUnit):
+    '''
+     	Float Point Adder
+    '''
+
+    def __init__(self, id):
+        """
+        See PsedoFunctionUnit for more info.
+
+        :param id: Identifier for this function unit
+        """
+        super().__init__(Config.FUType.INT, id)
+        self.A = None  # A port
+        self.B = None  # B port
+
+    def tick(self):
+        finished = super().tick()
+
+        # Psedo calculation in the last cycle based on opCode
+        if finished == True:
+            if self.instruction.instrType == Config.InstrType.ADD_D:
+                self._outputVal = self.A + self.B  # src1 + src2
+            elif self.instruction.instrType == Config.InstrType.SUB_D:
+                self._outputVal = self.A - self.B  # src1 - src2
+            else:
+                assert False
+        return finished
 
 
-    def write_back(self, function_units):
-        for unit in function_units:
-            if unit.qj == self:
-                unit.rj = True
-                unit.qj = None
-            if unit.qk == self:
-                unit.rk = True
-                unit.qk = None
+class FPIntMulFU(PsedoFunctionUnit):
+    '''
+     	Float Point or Integer Multiplier
+    '''
+
+    def __init__(self, id):
+        """
+        See PsedoFunctionUnit for more info.
+
+        :param id: Identifier for this function unit
+        """
+        super().__init__(Config.FUType.INT, id)
+        self.A = None  # A port
+        self.B = None  # B port
+
+    def tick(self):
+        finished = super().tick()
+
+        # Psedo calculation in the last cycle based on opCode
+        if finished == True:
+            if self.instruction.instrType == Config.InstrType.MUL_D:
+                self._outputVal = self.A * self.B  # src1 * src2
+            elif self.instruction.instrType == Config.InstrType.DMUL:
+                self._outputVal = self.A * self.B  # src1 * src2
+            else:
+                assert False
+        return finished
+
+
+class FPIntDivFU(PsedoFunctionUnit):
+    '''
+     	Float Point or Integer Divider
+    '''
+
+    def __init__(self, id):
+        """
+        See PsedoFunctionUnit for more info.
+
+        :param id: Identifier for this function unit
+        """
+        super().__init__(Config.FUType.INT, id)
+        self.A = None  # A port
+        self.B = None  # B port
+
+    def tick(self):
+        finished = super().tick()
+
+        # Psedo calculation in the last cycle based on opCode
+        if finished == True:
+            if self.instruction.instrType == Config.InstrType.DIV_D:
+                self._outputVal = self.A / self.B  # src1 / src2
+            elif self.instruction.instrType == Config.InstrType.DIV:
+                self._outputVal = self.A / self.B  # src1 / src2
+            else:
+                assert False
+        return finished
+
+

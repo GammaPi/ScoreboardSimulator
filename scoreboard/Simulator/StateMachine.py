@@ -1,25 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-
-class AbstractStateMachine:
-
-    @abstractmethod
-    def next(self):
-        pass
-
-    @abstractmethod
-    def reset(self):
-        pass
-
-    @abstractmethod
-    @property
-    def curState(self):
-        pass
-
-    @abstractmethod
-    @curState.setter
-    def curState(self, newState, curCounter=0):
-        pass
+from Simulator.AbstractHW import AbstractStateMachine
 
 
 class MultiCycleDFA(AbstractStateMachine):
