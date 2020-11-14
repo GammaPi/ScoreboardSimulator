@@ -39,6 +39,9 @@ class IntFU(PsedoFunctionUnit):
      	Suitable for any kinds of operations on integers. eg: Integer Add/SUB ,Branch. Load and Stores
     '''
 
+    def __init__(self):
+        super().__init__(Config.FUType.INT, None, None, None, None, None, None)
+
     def __init__(self, id, dataMemory: AbstractMemory, instrMemory: AbstractMemory,
                  dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
         """
@@ -131,6 +134,8 @@ class FPAdderFU(PsedoFunctionUnit):
     '''
      	Float Point Adder
     '''
+    def __init__(self):
+        super().__init__(Config.FUType.FP_ADDER, None, None, None, None, None, None)
 
     def __init__(self, id, dataMemory: AbstractMemory, instrMemory: AbstractMemory,
                  dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
@@ -162,6 +167,9 @@ class FPIntMulFU(PsedoFunctionUnit):
      	Float Point or Integer Multiplier
     '''
 
+    def __init__(self):
+        super().__init__(Config.FUType.FP_INT_MUL, None, None, None, None, None, None)
+
     def __init__(self, id, dataMemory: AbstractMemory, instrMemory: AbstractMemory,
                  dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
         """
@@ -191,6 +199,8 @@ class FPIntDivFU(PsedoFunctionUnit):
     '''
      	Float Point or Integer Divider
     '''
+    def __init__(self):
+        super().__init__(Config.FUType.FP_INT_DIV, None, None, None, None, None, None)
 
     def __init__(self, id):
         """

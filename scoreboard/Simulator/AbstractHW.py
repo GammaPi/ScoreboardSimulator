@@ -74,32 +74,7 @@ class Instruction:
         self.src2Reg = src2Reg
         self.immed = immed  # immediate number
         self.stateMachine = stateMachine
-
-
-class AbstractFunctionUnit(metaclass=ABCMeta):
-    def __init__(self, type: Config.FUType, id):
-        self.type = type
-        self.id = id
-        self.ENABLE = False  # Enable Signal
-        self._outputVal = None
-        self.instruction: Instruction = None  # The instruction representation this FU is executing.
-
-    @abstractmethod
-    def tick(self):
-        """
-        To perform correct calculation. CU has to set instruction and ENABLE attribute first!!!
-        This function only performs exec stage. Operands are assigned by CU.
-        :return Return a boolean to indicate if execution has finished. Return None if not enabled.
-        """
-        pass
-
-    @property
-    def outputVal(self):
-        return self._outputVal
-
-    @outputVal.setter
-    def outputVal(self):
-        raise AttributeError('Cannot set val because it is readonly')
+        self.fu: AbstractFunctionUnit = None  # Which function unit is executing this instruction
 
 
 class AbstractMemory(metaclass=ABCMeta):
@@ -138,3 +113,42 @@ class AbstractBus(metaclass=ABCMeta):
     @abstractmethod
     def write(self, value):
         pass
+
+
+class AbstractFunctionUnit(metaclass=ABCMeta):
+    def __init__(self, fuType: Config.FUType, id, dataMemory: AbstractMemory, instrMemory: AbstractMemory,
+                 dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
+        self.type = fuType
+        self.id = id
+        self.ENABLE = False  # Enable Signal
+        self._outputVal = None
+        self.instruction: Instruction = None  # The instruction representation this FU is executing.
+
+        self.dataMemory = dataMemory
+        self.instrMemory = instrMemory
+        self.dataBus = dataBus
+        self.instrBus = instrBus
+
+        self.PC = registerDict[RegType.SP_PC]
+        self.IAR = registerDict[RegType.SP_IAR]
+        self.IR = registerDict[RegType.SP_IR]
+        self.DAR = registerDict[RegType.SP_DAR]
+        self.fltRegs = registerDict[RegType.GP_FLOAT]
+        self.intRegs = registerDict[RegType.GP_INT]
+
+    @abstractmethod
+    def tick(self):
+        """
+        To perform correct calculation. CU has to set instruction and ENABLE attribute first!!!
+        This function only performs exec stage. Operands are assigned by CU.
+        :return Return a boolean to indicate if execution has finished. Return None if not enabled.
+        """
+        pass
+
+    @property
+    def outputVal(self):
+        return self._outputVal
+
+    @outputVal.setter
+    def outputVal(self):
+        raise AttributeError('Cannot set val because it is readonly')
