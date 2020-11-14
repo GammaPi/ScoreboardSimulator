@@ -39,7 +39,7 @@ def opOP(name: str) -> str:
 
 
 def opRD(name: str) -> str:
-    number = int(filter(str.isdigit, name))
+    number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 5)
 
 
@@ -60,12 +60,12 @@ def opFunc() -> str:
 
 
 def opIImmediate(name: str) -> str:
-    number = int(filter(str.isdigit, name))
+    number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 16)
 
 
 def opJImmediate(name: str) -> str:
-    number = int(filter(str.isdigit, name))
+    number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 26)
 
 

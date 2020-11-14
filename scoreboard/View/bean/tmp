@@ -1,12 +1,173 @@
 [
     {
         "currentCycle": 1,
-        "ProgramCounter": "1",
+        "ProgramCounter": "0000",
+        "stallList": [
+            {
+                "type": "RAW",
+                "dependToRegister": "R2",
+                "dependFromRegister": "R1"
+            },
+            {
+                "type": "WAW",
+                "dependToRegister": "R3",
+                "dependFromRegister": "R1"
+            },
+            {
+                "type": "WAR",
+                "dependToRegister": "R4",
+                "dependFromRegister": "R1"
+            }
+        ],
+        "instructionStatusList": [
+            {
+                "instruction": {
+                    "issueCycle": 1,
+                    "tag": "",
+                    "address": "0000",
+                    "name": "J",
+                    "format": "J",
+                    "operandLeftName": "12",
+                    "operandRightName": "",
+                    "destinationName": ""
+                },
+                "stage": "issue"
+            }
+        ],
+        "functionUnitStatus": {
+            "functionUnitList": [
+                {
+                    "name": "FUname",
+                    "busy": "yes",
+                    "op": "",
+                    "des": "",
+                    "fi": "",
+                    "fj": "",
+                    "fk": "",
+                    "qj": "",
+                    "qk": "",
+                    "rj": "",
+                    "rk": ""
+                },
+                {
+                    "name": "FUname2",
+                    "busy": "no",
+                    "op": "",
+                    "des": "",
+                    "fi": "",
+                    "fj": "",
+                    "fk": "",
+                    "qj": "",
+                    "qk": "",
+                    "rj": "",
+                    "rk": ""
+                }
+            ]
+        },
+        "registerStatusList": [
+            {
+                "registerName": "R1",
+                "functionUnitName": "ADD"
+            },
+            {
+                "registerName": "R2",
+                "functionUnitName": "SUB"
+            }
+        ],
+        "registerValueList": [
+            {
+                "name": "R1",
+                "value": "10000"
+            },
+            {
+                "name": "R2",
+                "value": "20000"
+            }
+        ],
+        "log": "hello world"
+    },
+    {
+        "currentCycle": 2,
+        "ProgramCounter": "0004",
         "stallList": [],
-        "instructionStatusList": [],
-        "functionUnitStatus": {},
-        "registerStatusList": [],
-        "registerValueList": [],
-        "log": ""
+        "instructionStatusList": [
+            {
+                "instruction": {
+                    "issueCycle": 1,
+                    "tag": "",
+                    "address": "0000",
+                    "name": "J",
+                    "format": "J",
+                    "operandLeftName": "12",
+                    "operandRightName": "",
+                    "destinationName": ""
+                },
+                "stage": "read"
+            },
+            {
+                "instruction": {
+                    "issueCycle": 2,
+                    "tag": "",
+                    "address": "0004",
+                    "name": "J",
+                    "format": "J",
+                    "operandLeftName": "12",
+                    "operandRightName": "",
+                    "destinationName": ""
+                },
+                "stage": "issue"
+            }
+        ],
+        "functionUnitStatus": {
+            "functionUnitList": [
+                {
+                    "name": "FUname",
+                    "busy": "yes",
+                    "op": "",
+                    "des": "",
+                    "fi": "",
+                    "fj": "",
+                    "fk": "",
+                    "qj": "",
+                    "qk": "",
+                    "rj": "",
+                    "rk": ""
+                },
+                {
+                    "name": "FUname2",
+                    "busy": "no",
+                    "op": "",
+                    "des": "",
+                    "fi": "",
+                    "fj": "",
+                    "fk": "",
+                    "qj": "",
+                    "qk": "",
+                    "rj": "",
+                    "rk": ""
+                }
+            ]
+        },
+        "registerStatusList": [
+            {
+                "registerName": "R1",
+                "functionUnitName": "ADD"
+            },
+            {
+                "registerName": "R2",
+                "functionUnitName": "SUB"
+            }
+        ],
+        "registerValueList": [
+            {
+                "name": "R1",
+                "value": "10000"
+            },
+            {
+                "name": "R2",
+                "value": "20000"
+            }
+        ],
+        "log": "hello world 2"
     }
 ]
