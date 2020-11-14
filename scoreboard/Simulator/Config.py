@@ -62,37 +62,41 @@ class InstrType(Enum):
 
         op name is case-insensitive
     '''
-    # Add new op as (OPNAME=(funcUnitType, instFormat, opCode,[opName]))
-    NOP = (None, InstrFormat.SPECIAL, 60)
-    HALT = (None, InstrFormat.SPECIAL, 61)
+    # Add new op as (OPNAME=(funcUnitType, instFormat, issueCycles, readOpCycles,execCycles, wbCycles, opCode,[opName]))
+    NOP = (None, InstrFormat.SPECIAL, 1, 0, 0, 0, 60)
+    HALT = (None, InstrFormat.SPECIAL, 1, 0, 0, 0, 61)
 
-    LW = (FUType.INT, InstrFormat.I_FORMAT, 20)
-    SW = (FUType.INT, InstrFormat.I_FORMAT, 21)
-    L_D = (FUType.INT, InstrFormat.FI_FORMAT, 40, 'L.D')
-    S_D = (FUType.INT, InstrFormat.FI_FORMAT, 41, 'S.D')
+    LW = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 1, 20)
+    SW = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 1, 21)
+    L_D = (FUType.INT, InstrFormat.FI_FORMAT, 1, 1, 1, 1, 40, 'L.D')
+    S_D = (FUType.INT, InstrFormat.FI_FORMAT, 1, 1, 1, 1, 41, 'S.D')
 
-    ADD_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 30, 'ADD.D')
-    SUB_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 31, 'SUB.D')
-    MUL_D = (FUType.FP_INT_MUL, InstrFormat.FR_FORMAT, 32, 'MUL.D')
-    DIV_D = (FUType.FP_INT_DIV, InstrFormat.FR_FORMAT, 33, 'DIV.D')
+    ADD_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 1, 1, 2, 1, 30, 'ADD.D')
+    SUB_D = (FUType.FP_ADDER, InstrFormat.FR_FORMAT, 1, 1, 2, 1, 31, 'SUB.D')
+    MUL_D = (FUType.FP_INT_MUL, InstrFormat.FR_FORMAT, 1, 1, 10, 1, 32, 'MUL.D')
+    DIV_D = (FUType.FP_INT_DIV, InstrFormat.FR_FORMAT, 1, 1, 40, 1, 33, 'DIV.D')
 
-    DADD = (FUType.INT, InstrFormat.R_FORMAT, 10)
-    DADDI = (FUType.INT, InstrFormat.I_FORMAT, 22)
-    DSUB = (FUType.INT, InstrFormat.R_FORMAT, 11)
-    DSUBI = (FUType.INT, InstrFormat.I_FORMAT, 23)
-    DMUL = (FUType.FP_INT_MUL, InstrFormat.R_FORMAT, 12)
-    DDIV = (FUType.FP_INT_DIV, InstrFormat.R_FORMAT, 13)
+    DADD = (FUType.INT, InstrFormat.R_FORMAT, 1, 1, 1, 1, 10)
+    DADDI = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 1, 22)
+    DSUB = (FUType.INT, InstrFormat.R_FORMAT, 1, 1, 1, 1, 11)
+    DSUBI = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 1, 23)
+    DMUL = (FUType.FP_INT_MUL, InstrFormat.R_FORMAT, 1, 1, 10, 1, 12)
+    DDIV = (FUType.FP_INT_DIV, InstrFormat.R_FORMAT, 1, 1, 40, 1, 13)
 
-    BEQ = (FUType.INT, InstrFormat.I_FORMAT, 24)
-    BNE = (FUType.INT, InstrFormat.I_FORMAT, 25)
-    BEQZ = (FUType.INT, InstrFormat.I_FORMAT, 26)
-    BNEZ = (FUType.INT, InstrFormat.I_FORMAT, 27)
+    BEQ = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 0, 24)
+    BNE = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 0, 25)
+    BEQZ = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 0, 26)
+    BNEZ = (FUType.INT, InstrFormat.I_FORMAT, 1, 1, 1, 0, 27)
 
-    J = (FUType.INT, InstrFormat.J_FORMAT, 50)
+    J = (FUType.INT, InstrFormat.J_FORMAT, 1, 0, 1, 0, 50)
 
-    def __init__(self, funcUnit, instFormat, opCode, opName=None):
+    def __init__(self, funcUnit, instFormat, issueCycles, readOpCycles, execCycles, wbCycles, opCode, opName=None):
         self.funcUnit = funcUnit
         self.instFormat = instFormat
+        self.issueCycles = issueCycles
+        self.readOpCycles = readOpCycles
+        self.execCycles = execCycles
+        self.wbCycles = wbCycles
         self.opCode = opCode
         if opName is None:
             # Use Enum name
@@ -107,12 +111,12 @@ class InstrType(Enum):
         (ignoring details won't prohibit the usage of this class)
         '''
         obj = object.__new__(cls)
-        if values[2] in cls._member_map_:
+        if values[6] in cls._member_map_:
             raise TypeError('Attempted to reuse opcode: %r' % values[-1])
         # link opcode with InstrType object
-        cls._member_map_[values[2]] = obj
-        if len(values) == 4:
-            cls._member_map_[values[3]] = obj
+        cls._member_map_[values[6]] = obj
+        if len(values) == 8:
+            cls._member_map_[values[7]] = obj
 
         # Make output possible
         obj._all_values = values
