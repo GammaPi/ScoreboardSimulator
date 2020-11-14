@@ -46,13 +46,16 @@ class Simulator:
         # Initialize Function units
         self.funcUnitDict = {}
         fuClasses = [IntFU, FPIntDivFU, FPAdderFU, FPIntMulFU]
-        fuPrefix = ['Int', 'FP/Int Divider', 'FP Adder', 'FP Multiplier']
+        fuPrefix = ['Int', 'FPDiv', 'FPAdd', 'FPMul']
         for i, fuClass in enumerate(fuClasses):
-            fuType = fuClass(0).type
-            self.funcUnitDict[fuType] = []
+            fuType = fuClass._type  # We just want to get the type of fuClass.We have to access it through an instance.
+            fuType:Config.FUType
             for j in range(fuType.quantity):
-                self.funcUnitDict[fuType].append(fuClass(id=fuPrefix[i] + ''))
+                fuInstance = fuClass(fuPrefix[i] + str(j),self.dataMemory, self.instrMemory,
+                 self.dataBus, self.instBus, self.registerDict)
+                self.funcUnitDict[fuInstance.id] = fuInstance
 
         # Initialize ControlUnit
-        self.controlUnit = ControlUnit(self.dataMemory, self.instrMemory, self.dataBus, self.instBus, self.registerDict,
+        self.controlUnit = ControlUnit(0, self.dataMemory, self.instrMemory, self.dataBus, self.instBus,
+                                       self.registerDict,
                                        self.funcUnitDict)
