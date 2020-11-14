@@ -9,3 +9,4 @@ class UIData:
     instructionExtendList: list  # InstructionExtend   todo needs operationCode translation
     stallList: list  # stalls happened in current cycle
     log: str
+    ProgramCounter: str
