@@ -6,14 +6,15 @@ from View.bean.ui_data import UIData
 from View.bean.instruction_full_status import InstructionFullStatus
 from View.bean.instruction_extend import InstructionExtend
 from View.bean.opcode import opcodesOf
+from View.bean.debug import writeTestTmpFile
 
 
 class Workflow:
 
     path: str = "tmp"
-    frames: list[Frame] = list[Frame]
-    UIDs: list[UIData] = list[UIData]
-    IFSList: list[InstructionFullStatus] = list[InstructionFullStatus]
+    frames: list = []
+    UIDs: list = []
+    IFSList: list = []
 
     @staticmethod
     def readTmpFile(self, path: str):
@@ -21,7 +22,7 @@ class Workflow:
             self.frames = json.load(f)
 
     @staticmethod
-    def updateIFSList(self, currentCycle: int, updates: list[InstructionStatus]) -> list[InstructionFullStatus]:
+    def updateIFSList(self, currentCycle: int, updates: list) -> list:
         for update in updates:
             if update.stage == "issue":
                 newInstrStat = InstructionFullStatus()
@@ -49,7 +50,7 @@ class Workflow:
         return self.IFSList
 
     @staticmethod
-    def buildExtendList(sources: list[InstructionFullStatus]) -> list[InstructionExtend]:
+    def buildExtendList(sources: list) -> list:
         results = [InstructionExtend]
         for source in sources:
             result = InstructionExtend()
@@ -62,7 +63,8 @@ class Workflow:
     def buildUIData(self):
         UID = UIData()
         for frame in self.frames:
-            UID.instructionFullStatusList = self.updateIFSList(frame.currentCycle, frame.instructionStatusList)
+            frame = Frame(frame)
+            UID.instructionFullStatusList = self.updateIFSList(self, frame.currentCycle, frame.instructionStatusList)
             UID.functionUnitStatus = frame.functionUnitStatus
             UID.registerStatusList = frame.registerStatusList
             UID.registerValueList = frame.registerValueList
@@ -78,10 +80,12 @@ class Workflow:
 
     @staticmethod
     def workflow(self):
+        writeTestTmpFile()
         # callSimulator()
-        self.readTmpFile(self.path)
-        self.buildUIData()
+        self.readTmpFile(self, self.path)
+        self.buildUIData(self)
         # callUI()
+        print(self.toUIData(self, 0))
 
 
 Workflow.workflow(Workflow)

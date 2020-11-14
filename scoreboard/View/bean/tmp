@@ -1,0 +1,12 @@
+[
+    {
+        "currentCycle": 1,
+        "ProgramCounter": "1",
+        "stallList": [],
+        "instructionStatusList": [],
+        "functionUnitStatus": {},
+        "registerStatusList": [],
+        "registerValueList": [],
+        "log": ""
+    }
+]
