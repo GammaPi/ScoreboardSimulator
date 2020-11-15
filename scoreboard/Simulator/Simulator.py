@@ -99,36 +99,34 @@ class Simulator:
 
             # todo: Am I wrong for (address field)
 
-
-            # frame.instructionStatusList.append(InstructionStatus.newInstructionStatus(
-            #     Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.immed,
-            #                                name=instruction.instrType.opName,
-            #                                format=instruction.instrType.instFormat.uiName,
-            #                                operandLeftName=instruction.src1Reg.name if instruction.src1Reg else "",
-            #                                operandRightName=instruction.src2Reg.name if instruction.src2Reg else "",
-            #                                destinationName=instruction.dstReg.name if instruction.dstReg else ""),
-            #     curStatusName))
-            if instruction.instrType in [Config.InstrType.BEQ,Config.InstrType.BNE,Config.InstrType.BEQZ,Config.InstrType.BNEZ]:
-                Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.address,
-                                           name=instruction.instrType.opName,
-                                           format=instruction.instrType.instFormat.uiName,
-                                           operandLeftName=instruction.src1Reg.name,
-                                           operandRightName=instruction.src2Reg.name if instruction.src1Reg else "",
-                                           destinationName=instruction.immed)
+            if instruction.instrType in [Config.InstrType.BEQ, Config.InstrType.BNE, Config.InstrType.BEQZ,
+                                         Config.InstrType.BNEZ]:
+                frame.instructionStatusList.append(
+                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                               address=instruction.address,
+                                               name=instruction.instrType.opName,
+                                               format=instruction.instrType.instFormat.uiName,
+                                               operandLeftName=instruction.src1Reg.name,
+                                               operandRightName=instruction.src2Reg.name if instruction.src1Reg else "",
+                                               destinationName=instruction.immed))
             if instruction.instrType.instFormat in [Config.InstrFormat.I_FORMAT, Config.InstrFormat.FI_FORMAT]:
-                Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.address,
-                                           name=instruction.instrType.opName,
-                                           format=instruction.instrType.instFormat.uiName,
-                                           operandLeftName=instruction.src1Reg.name,
-                                           operandRightName=instruction.immed,
-                                           destinationName=instruction.dstReg.name if instruction.dstReg else "")
+                frame.instructionStatusList.append(
+                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                               address=instruction.address,
+                                               name=instruction.instrType.opName,
+                                               format=instruction.instrType.instFormat.uiName,
+                                               operandLeftName=instruction.src1Reg.name,
+                                               operandRightName=instruction.immed,
+                                               destinationName=instruction.dstReg.name if instruction.dstReg else ""))
             elif instruction.instrType.instFormat in [Config.InstrFormat.R_FORMAT, Config.InstrFormat.FR_FORMAT]:
-                Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.address,
-                                           name=instruction.instrType.opName,
-                                           format=instruction.instrType.instFormat.uiName,
-                                           operandLeftName=instruction.src1Reg.name,
-                                           operandRightName=instruction.src2Reg.name,
-                                           destinationName=instruction.dstReg.name if instruction.dstReg else "")
+                frame.instructionStatusList.append(
+                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                               address=instruction.address,
+                                               name=instruction.instrType.opName,
+                                               format=instruction.instrType.instFormat.uiName,
+                                               operandLeftName=instruction.src1Reg.name,
+                                               operandRightName=instruction.src2Reg.name,
+                                               destinationName=instruction.dstReg.name if instruction.dstReg else ""))
             elif instruction.instrType.instFormat in [Config.InstrFormat.J_FORMAT]:
                 Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.address,
                                            name=instruction.instrType.opName,
@@ -137,14 +135,16 @@ class Simulator:
                                            operandRightName=instruction.immed,
                                            destinationName=instruction.dstReg.name if instruction.dstReg else "")
             elif instruction.instrType.instFormat in [Config.InstrFormat.SPECIAL]:
-                Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.address,
-                                           name=instruction.instrType.opName,
-                                           format=instruction.instrType.instFormat.uiName,
-                                           operandLeftName='',
-                                           operandRightName='',
-                                           destinationName='')
-
-
+                frame.instructionStatusList.append(
+                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                               address=instruction.address,
+                                               name=instruction.instrType.opName,
+                                               format=instruction.instrType.instFormat.uiName,
+                                               operandLeftName='',
+                                               operandRightName='',
+                                               destinationName=''))
+            else:
+                assert False
 
         functionUnitList = []
 
