@@ -46,12 +46,12 @@ def frame2():
 
     frame.instructionStatusList = [
         InstructionStatus.newInstructionStatus(Instruction.newInstruction(1, "", "0000", "J", "J", "12", "", ""), "read"),
-        InstructionStatus.newInstructionStatus(Instruction.newInstruction(2, "", "0004", "J", "J", "12", "", ""),"issue")
+        InstructionStatus.newInstructionStatus(Instruction.newInstruction(2, "", "0004", "ADD.D", "R", "r1", "r2", "r3"), "issue"),
+        InstructionStatus.newInstructionStatus(Instruction.newInstruction(3, "", "0008", "DADDI", "I", "r12", "100", "r1"), "issue"),
     ]
 
     frame.functionUnitStatus = FunctionUnitStatus.newFunctionUnitStatus([
         FunctionUnit.newFunctionUnit("FUname", "yes", "", "", "", "", "", "", "", "", ""),
-        FunctionUnit.newFunctionUnit("FUname2", "no", "", "", "", "", "", "", "", "", "")
     ])
     frame.registerStatusList = [RegisterStatus.newRegisterStatus("R1", "ADD"), RegisterStatus.newRegisterStatus("R2", "SUB")]
     frame.registerValueList = [RegisterValue.newRegisterValue("R1", "10000"), RegisterValue.newRegisterValue("R2", "20000")]

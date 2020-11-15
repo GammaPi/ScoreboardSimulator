@@ -90,6 +90,6 @@ def opcodesOf(instruction: Instruction) -> str:
         print("Unknown Instruction Format...Aborting")
         os.abort()
     if len(opcodes) != 32:
-        print("opcdes incorrect: "+opcodes+" Aborting")
+        print("opcodes incorrect: "+opcodes+" Aborting")
         os.abort()
     return opcodes

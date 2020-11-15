@@ -109,11 +109,24 @@
                     "issueCycle": 2,
                     "tag": "",
                     "address": "0004",
-                    "name": "J",
-                    "format": "J",
-                    "operandLeftName": "12",
-                    "operandRightName": "",
-                    "destinationName": ""
+                    "name": "ADD.D",
+                    "format": "R",
+                    "operandLeftName": "r1",
+                    "operandRightName": "r2",
+                    "destinationName": "r3"
+                },
+                "stage": "issue"
+            },
+            {
+                "instruction": {
+                    "issueCycle": 3,
+                    "tag": "",
+                    "address": "0008",
+                    "name": "DADDI",
+                    "format": "I",
+                    "operandLeftName": "r12",
+                    "operandRightName": "100",
+                    "destinationName": "r1"
                 },
                 "stage": "issue"
             }
@@ -123,19 +136,6 @@
                 {
                     "name": "FUname",
                     "busy": "yes",
-                    "op": "",
-                    "des": "",
-                    "fi": "",
-                    "fj": "",
-                    "fk": "",
-                    "qj": "",
-                    "qk": "",
-                    "rj": "",
-                    "rk": ""
-                },
-                {
-                    "name": "FUname2",
-                    "busy": "no",
                     "op": "",
                     "des": "",
                     "fi": "",
