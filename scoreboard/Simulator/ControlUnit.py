@@ -143,7 +143,7 @@ class ControlUnit:
                     # Link fu to this instruction
                     curInstr.fu = unit
                     # Link this instruction to fu
-                    unit.newInstruction(curInstr, self.funcUnitDict)
+                    unit.newInstruction(curInstr, self.funcUnitDict,self.regStatusTable)
 
                     self.PC += 1
                     print("==issue==", unit)

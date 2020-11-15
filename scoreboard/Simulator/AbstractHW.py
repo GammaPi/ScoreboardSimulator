@@ -202,7 +202,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         self.status = FuStatus.IDLE
         self._instruction: InternalInst = None  # The instruction this FU is executing.
 
-    def _issue(self,curCycle):
+    def _issue(self, curCycle):
         """
         Read operand
         return: Return a boolean to indicate if readOp has finished. Return None if not enabled.
@@ -210,7 +210,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _readOp(self,curCycle):
+    def _readOp(self, curCycle):
         """
         Read operand
         return: Return a boolean to indicate if readOp has finished. Return None if not enabled.
@@ -218,7 +218,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _execute(self,curCycle):
+    def _execute(self, curCycle):
         """
         To perform correct calculation. CU has to set instruction and ENABLE attribute first!!!
         This function only performs exec stage. Operands are assigned by CU.
@@ -227,7 +227,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _writeBack(self,curCycle):
+    def _writeBack(self, curCycle):
         """
         Perform corresponding operation in write back stage.
         return: Return a boolean to indicate if writeBack has finished. Return None if not enabled.
@@ -243,7 +243,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def newInstruction(self, newInstruction, allFuDict):
+    def newInstruction(self, newInstruction, allFuDict, regStatusTable):
         """
         Let this FU execute new instruction
         :param newInstruction: A new instruction from instruction memory

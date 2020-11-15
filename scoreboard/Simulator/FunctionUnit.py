@@ -29,9 +29,10 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                  dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
         super().__init__(fuType, id, dataMemory, instrMemory, dataBus, instrBus, registerDict)
 
-    def newInstruction(self, newInstruction, allFuDict):
+    def newInstruction(self, newInstruction, allFuDict, regStatusTable):
         self._instruction: InternalInst = newInstruction
         self.allFuDict = allFuDict
+        self.regStatusTable = regStatusTable
 
         self.status = FuStatus.NORMAL
 
@@ -141,6 +142,9 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                     if unit.qk == self.id:
                         unit.rk = True
                         unit.qk = None
+
+                self.regStatusTable[self.fuStatusTable.fi.name] = None
+
                 self.fuStatusTable.clear()
 
                 self.status = FuStatus.IDLE
