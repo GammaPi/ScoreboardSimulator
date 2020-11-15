@@ -22,12 +22,17 @@ class FUType(Enum):
 
 
 class InstrFormat(Enum):
-    R_FORMAT = 1  # 1*
-    I_FORMAT = 2  # 2*
-    FR_FORMAT = 3  # 3*
-    FI_FORMAT = 4  # 4*
-    J_FORMAT = 5  # 5*
-    SPECIAL = 6  # 6*
+    # (id,UIName)
+    R_FORMAT = (1, 'R')  # 1*
+    I_FORMAT = (2, 'I')  # 2*
+    FR_FORMAT = (3, 'FR')  # 3*
+    FI_FORMAT = (4, 'FI')  # 4*
+    J_FORMAT = (5, 'J')  # 5*
+    SPECIAL = (6, 'S')  # 6*
+
+    def __init__(self, id, uiName):
+        self.id = id
+        self.uiName = uiName
 
 
 GP_FLOAT_REG_NUM = 15

@@ -201,5 +201,5 @@ class ControlUnit:
         for unit in self.funcUnitDict.values():
             unit: AbstractFunctionUnit
             if unit.fuStatusTable.busy:
-                instrStatusList.append(str(unit._instruction))
+                instrStatusList.append(unit._instruction)
         return instrStatusList
