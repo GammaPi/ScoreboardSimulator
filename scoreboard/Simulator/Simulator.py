@@ -102,54 +102,65 @@ class Simulator:
             if instruction.instrType in [Config.InstrType.BEQ, Config.InstrType.BNE, Config.InstrType.BEQZ,
                                          Config.InstrType.BNEZ]:
                 frame.instructionStatusList.append(
-                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                               address=instruction.address,
-                                               name=instruction.instrType.opName,
-                                               format=instruction.instrType.instFormat.uiName,
-                                               operandLeftName=instruction.src1Reg.name,
-                                               operandRightName=instruction.src2Reg.name if instruction.src1Reg else "",
-                                               destinationName=instruction.immed))
+                    InstructionStatus.newInstructionStatus(
+                        Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                                   address=instruction.address,
+                                                   name=instruction.instrType.opName,
+                                                   format=instruction.instrType.instFormat.uiName,
+                                                   operandLeftName=instruction.src1Reg.name,
+                                                   operandRightName=instruction.src2Reg.name if instruction.src1Reg else "",
+                                                   destinationName=str(instruction.immed)), curStatusName))
             if instruction.instrType.instFormat in [Config.InstrFormat.I_FORMAT, Config.InstrFormat.FI_FORMAT]:
                 frame.instructionStatusList.append(
-                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                               address=instruction.address,
-                                               name=instruction.instrType.opName,
-                                               format=instruction.instrType.instFormat.uiName,
-                                               operandLeftName=instruction.src1Reg.name,
-                                               operandRightName=instruction.immed,
-                                               destinationName=instruction.dstReg.name if instruction.dstReg else ""))
+                    InstructionStatus.newInstructionStatus(
+                        Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                                   address=instruction.address,
+                                                   name=instruction.instrType.opName,
+                                                   format=instruction.instrType.instFormat.uiName,
+                                                   operandLeftName=instruction.src1Reg.name,
+                                                   operandRightName=str(instruction.immed),
+                                                   destinationName=instruction.dstReg.name if instruction.dstReg else ""),
+                        curStatusName))
+
             elif instruction.instrType.instFormat in [Config.InstrFormat.R_FORMAT, Config.InstrFormat.FR_FORMAT]:
+
                 frame.instructionStatusList.append(
-                    Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                               address=instruction.address,
-                                               name=instruction.instrType.opName,
-                                               format=instruction.instrType.instFormat.uiName,
-                                               operandLeftName=instruction.src1Reg.name,
-                                               operandRightName=instruction.src2Reg.name,
-                                               destinationName=instruction.dstReg.name if instruction.dstReg else ""))
+                    InstructionStatus.newInstructionStatus(
+                        Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                                   address=instruction.address,
+                                                   name=instruction.instrType.opName,
+                                                   format=instruction.instrType.instFormat.uiName,
+                                                   operandLeftName=instruction.src1Reg.name,
+                                                   operandRightName=instruction.src2Reg.name,
+                                                   destinationName=instruction.dstReg.name if instruction.dstReg else ""),
+                        curStatusName))
             elif instruction.instrType.instFormat in [Config.InstrFormat.J_FORMAT]:
-                Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="", address=instruction.address,
-                                           name=instruction.instrType.opName,
-                                           format=instruction.instrType.instFormat.uiName,
-                                           operandLeftName='',
-                                           operandRightName=instruction.immed,
-                                           destinationName=instruction.dstReg.name if instruction.dstReg else "")
-            elif instruction.instrType.instFormat in [Config.InstrFormat.SPECIAL]:
-                frame.instructionStatusList.append(
+                InstructionStatus.newInstructionStatus(
                     Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
                                                address=instruction.address,
                                                name=instruction.instrType.opName,
                                                format=instruction.instrType.instFormat.uiName,
                                                operandLeftName='',
-                                               operandRightName='',
-                                               destinationName=''))
+                                               operandRightName=str(instruction.immed),
+                                               destinationName=instruction.dstReg.name if instruction.dstReg else ""),
+                    curStatusName)
+            elif instruction.instrType.instFormat in [Config.InstrFormat.SPECIAL]:
+                frame.instructionStatusList.append(
+                    InstructionStatus.newInstructionStatus(
+                        Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                                   address=instruction.address,
+                                                   name=instruction.instrType.opName,
+                                                   format=instruction.instrType.instFormat.uiName,
+                                                   operandLeftName='',
+                                                   operandRightName='',
+                                                   destinationName=''), curStatusName))
             else:
                 assert False
 
-        functionUnitList = []
+            functionUnitList = []
 
-        for key, val in self.controlUnit.funcUnitDict.items():
-            val: AbstractFunctionUnit
+            for key, val in self.controlUnit.funcUnitDict.items():
+                val: AbstractFunctionUnit
             fuStatusTable = val.fuStatusTable
             # todo: des?!!?
             functionUnitList.append(FunctionUnit.newFunctionUnit(name=key,
@@ -164,27 +175,32 @@ class Simulator:
                                                                  rj=str(fuStatusTable.rj),
                                                                  rk=str(fuStatusTable.rk)))
 
-        frame.functionUnitStatus = FunctionUnitStatus.newFunctionUnitStatus(functionUnitList)
+            frame.functionUnitStatus = FunctionUnitStatus.newFunctionUnitStatus(functionUnitList)
 
-        frame.registerStatusList = []
-        for key, val in self.controlUnit.regStatusTable.items():
-            frame.registerStatusList.append(RegisterStatus.newRegisterStatus(key, str(val)))
+            frame.registerStatusList = []
+            for key, val in self.controlUnit.regStatusTable.items():
+                frame.registerStatusList.append(RegisterStatus.newRegisterStatus(key, str(val)))
 
-        registerValueList = []
-        for reg in self.controlUnit.registerDict[RegType.GP_INT]:
-            registerValueList.append(RegisterValue.newRegisterValue(reg.name, str(reg.read())))
-        for freg in self.controlUnit.registerDict[RegType.GP_FLOAT]:
-            registerValueList.append(RegisterValue.newRegisterValue(freg.name, str(freg.read())))
-        frame.registerValueList = registerValueList
-        frame.log = ""
+            registerValueList = []
+            for reg in self.controlUnit.registerDict[RegType.GP_INT]:
+                registerValueList.append(RegisterValue.newRegisterValue(reg.name, str(reg.read())))
+            for freg in self.controlUnit.registerDict[RegType.GP_FLOAT]:
+                registerValueList.append(RegisterValue.newRegisterValue(freg.name, str(freg.read())))
+            frame.registerValueList = registerValueList
+            frame.log = ""
 
-        stallList = []
-        for stallInfo in self.controlUnit.stallList:
-            stallList.append(stall.newStall(stallInfo.stallType.name, str(stallInfo.toReg), str(stallInfo.fromReg)))
+            stallList = []
+            for stallInfo in self.controlUnit.stallList:
+                stallList.append(
+                    stall.newStall(stallInfo.stallType.name, str(stallInfo.toReg), str(stallInfo.fromReg)))
 
-        frame.stallList = stallList
+            frame.stallList = stallList
 
-        self.frameList.append(frame)
+            self.frameList.append(frame)
 
     def finished(self):
         return self.controlUnit.execFinished
+
+
+def finished(self):
+    return self.controlUnit.execFinished
