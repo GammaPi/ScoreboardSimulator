@@ -157,10 +157,10 @@ class Simulator:
             else:
                 assert False
 
-            functionUnitList = []
+        functionUnitList = []
 
-            for key, val in self.controlUnit.funcUnitDict.items():
-                val: AbstractFunctionUnit
+        for key, val in self.controlUnit.funcUnitDict.items():
+            val: AbstractFunctionUnit
             fuStatusTable = val.fuStatusTable
             # todo: des?!!?
             functionUnitList.append(FunctionUnit.newFunctionUnit(name=key,
@@ -175,28 +175,28 @@ class Simulator:
                                                                  rj=str(fuStatusTable.rj),
                                                                  rk=str(fuStatusTable.rk)))
 
-            frame.functionUnitStatus = FunctionUnitStatus.newFunctionUnitStatus(functionUnitList)
+        frame.functionUnitStatus = FunctionUnitStatus.newFunctionUnitStatus(functionUnitList)
 
-            frame.registerStatusList = []
-            for key, val in self.controlUnit.regStatusTable.items():
-                frame.registerStatusList.append(RegisterStatus.newRegisterStatus(key, str(val)))
+        frame.registerStatusList = []
+        for key, val in self.controlUnit.regStatusTable.items():
+            frame.registerStatusList.append(RegisterStatus.newRegisterStatus(key, str(val)))
 
-            registerValueList = []
-            for reg in self.controlUnit.registerDict[RegType.GP_INT]:
-                registerValueList.append(RegisterValue.newRegisterValue(reg.name, str(reg.read())))
-            for freg in self.controlUnit.registerDict[RegType.GP_FLOAT]:
-                registerValueList.append(RegisterValue.newRegisterValue(freg.name, str(freg.read())))
-            frame.registerValueList = registerValueList
-            frame.log = ""
+        registerValueList = []
+        for reg in self.controlUnit.registerDict[RegType.GP_INT]:
+            registerValueList.append(RegisterValue.newRegisterValue(reg.name, str(reg.read())))
+        for freg in self.controlUnit.registerDict[RegType.GP_FLOAT]:
+            registerValueList.append(RegisterValue.newRegisterValue(freg.name, str(freg.read())))
+        frame.registerValueList = registerValueList
+        frame.log = ""
 
-            stallList = []
-            for stallInfo in self.controlUnit.stallList:
-                stallList.append(
-                    stall.newStall(stallInfo.stallType.name, str(stallInfo.toReg), str(stallInfo.fromReg)))
+        stallList = []
+        for stallInfo in self.controlUnit.stallList:
+            stallList.append(
+                stall.newStall(stallInfo.stallType.name, str(stallInfo.toReg), str(stallInfo.fromReg)))
 
-            frame.stallList = stallList
+        frame.stallList = stallList
 
-            self.frameList.append(frame)
+        self.frameList.append(frame)
 
     def finished(self):
         return self.controlUnit.execFinished

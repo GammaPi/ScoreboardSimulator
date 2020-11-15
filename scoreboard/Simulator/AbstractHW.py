@@ -75,7 +75,7 @@ class Instruction:
         self.src1Reg = src1Reg
         self.src2Reg = src2Reg
         self.immed = None  # immediate number
-        self.address=None
+        self.address = None
 
         if type(immed) == str:
             assert str(int(immed)) == immed
@@ -105,7 +105,7 @@ class InternalInst(Instruction):
         """
         super().__init__(instrFromMemory.instrType, instrFromMemory.dstReg, instrFromMemory.src1Reg,
                          instrFromMemory.src2Reg, instrFromMemory.immed)
-
+        self.address = instrFromMemory.address
         self.fu: AbstractFunctionUnit = None  # Which function unit is executing this instruction
 
         self.issueStartCycle = None
@@ -202,7 +202,7 @@ class StallInfo:
         self.toReg = toReg
 
     def __str__(self):
-        return ''.join([self.stallType.name,' ', str(self.fromReg), ' ---> ', str(self.toReg)])
+        return ''.join([self.stallType.name, ' ', str(self.fromReg), ' ---> ', str(self.toReg)])
 
 
 class AbstractFunctionUnit(metaclass=ABCMeta):
