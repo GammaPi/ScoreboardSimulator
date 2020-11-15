@@ -33,9 +33,9 @@ class Simulator:
         self.registerDict[RegType.GP_FLOAT] = []
         self.registerDict[RegType.GP_INT] = []
         for i in range(Config.GP_FLOAT_REG_NUM):
-            self.registerDict[RegType.GP_FLOAT].append(FloatRegister('F' + str(i), i))
+            self.registerDict[RegType.GP_FLOAT].append(FloatRegister('F' + str(i)))
         for i in range(Config.GP_INT_REG_NUM):
-            self.registerDict[RegType.GP_INT].append(IntRegister('R' + str(i), i))
+            self.registerDict[RegType.GP_INT].append(IntRegister('R' + str(i)))
 
         # Initialize Special Purpose Registers
         self.registerDict[RegType.SP_PC] = PC('PC')

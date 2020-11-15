@@ -141,7 +141,6 @@ class AbstractBus(metaclass=ABCMeta):
         """
         self.name = name
         self.numBits = numBits
-        self.BUSY = False
 
     @abstractmethod
     def read(self):

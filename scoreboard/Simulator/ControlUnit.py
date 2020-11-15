@@ -108,9 +108,6 @@ class ControlUnit:
                 self.regStatusTable[index] = funcUnit.id
 
         def fetchInstr():
-            # Lock Instruction Bus
-            self.instrBus.BUSY = True
-
             # Put PC's address to Instruction Address Register
             self.IAR.write(self.PC.read())
             # Get instruction from instrMemory. Address is specified by IAR.

@@ -1,4 +1,4 @@
-from Simulator.AbstractHW import AbstractMemory
+from Simulator.AbstractHW import AbstractMemory, Instruction
 
 
 class AccessViolation(Exception):
@@ -17,22 +17,32 @@ class DictMemory(AbstractMemory):
         self.memDict = {}
 
     def read(self, location):
-        if 0 <= location and location < self.totalSize:
+        if location < 0 or location >= self.totalSize:
             raise AccessViolation('Location %d causes access violation in memory %s' % (location, self.name))
-        return self.memDict[location].value
+        if location not in self.memDict:
+            return 0
+        else:
+            return self.memDict[location].value
 
     def write(self, location, value):
         if type(value) is int:
-            # One byte
+            # One word
             if location < 0 or location >= self.totalSize:
                 raise AccessViolation('Location %d causes access violation in memory %s' % (location, self.name))
             memEntry = DictMemory._MemEntry(value, location, location)
             self.memDict[location] = memEntry
 
         elif type(value) is float:
-            # Two bytes
+            # Two words
             if location < 0 or location + 1 >= self.totalSize:
                 raise AccessViolation('Location %d causes access violation in memory %s' % (location, self.name))
             memEntry = DictMemory._MemEntry(value, location, location + 1)
             self.memDict[location] = memEntry
             self.memDict[location + 1] = memEntry
+        if type(value) is Instruction:
+            #todo: Translate instruction into bytecode
+            # One word
+            if location < 0 or location + 1 >= self.totalSize:
+                raise AccessViolation('Location %d causes access violation in memory %s' % (location, self.name))
+            memEntry = DictMemory._MemEntry(value, location, location)
+            self.memDict[location] = memEntry

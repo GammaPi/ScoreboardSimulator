@@ -84,6 +84,12 @@ class Assembler:
             curInstr = Instruction(instrType=curInstrType, dstReg=None,
                                    src1Reg=None,
                                    src2Reg=None, immed=symbols[1])
+
+        elif curInstrType in [Config.InstrType.HALT,Config.InstrType.NOP]:
+            # HALT
+            curInstr = Instruction(instrType=curInstrType, dstReg=None,
+                                   src1Reg=None,
+                                   src2Reg=None, immed=None)
         else:
             assert False
 

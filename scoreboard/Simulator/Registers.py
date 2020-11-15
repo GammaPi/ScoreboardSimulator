@@ -53,10 +53,10 @@ class SPReigster(AbstractRegister):
         self.value = 0
 
     def read(self):
-        return super().read()
+        return self.value
 
     def write(self, value):
-        return super().write(value)
+        self.value=value
 
 
 class PC(SPReigster):
