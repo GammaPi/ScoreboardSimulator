@@ -37,3 +37,8 @@ def testMultiCycleDFA():
     # A->B
     assert (mdfa.next() == State.A and mdfa.curState == State.A)
     assert (mdfa.next() == State.B and mdfa.curState == State.B)
+
+    mdfa = MultiCycleDFA([(State.A, State.B, 1)], State.A)
+    # A->B
+    assert (mdfa.next() == State.B and mdfa.curState == State.B)
+    assert (mdfa.next() == None and mdfa.curState == None)
