@@ -62,3 +62,6 @@ class Simulator:
 
     def tick(self):
         self.controlUnit.tick()
+
+    def finished(self):
+        return self.controlUnit.execFinished

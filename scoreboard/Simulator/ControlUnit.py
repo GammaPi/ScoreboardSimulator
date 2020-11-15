@@ -7,11 +7,6 @@ from Simulator.StateMachine import MultiCycleDFA
 from abc import ABCMeta, abstractmethod
 
 
-class RegStatusTableEntry:
-    def __init__(self):
-        self.fuId = None
-
-
 class ControlUnit:
 
     def __init__(self, entryPoint: int, dataMemory: AbstractMemory, instrMemory: AbstractMemory, dataBus: AbstractBus,
@@ -46,9 +41,9 @@ class ControlUnit:
         # Initialize Register Table
         self.regStatusTable = {}
         for intReg in self.intRegs:
-            self.regStatusTable[intReg.name] = RegStatusTableEntry()
+            self.regStatusTable[intReg.name] = None
         for fltReg in self.fltRegs:
-            self.regStatusTable[fltReg.name] = RegStatusTableEntry()
+            self.regStatusTable[fltReg.name] = None
 
         # Initialize Instruction Status Tracker (This is for output purposes)
         self.instrStates = {}
@@ -73,7 +68,7 @@ class ControlUnit:
             :param funcUnit:
             :return:
             """
-            return (instr.fu == funcUnit.type and (not funcUnit.fuStatusTable.busy) and (
+            return (instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy) and (
                 not self.regStatusTable[instr.dstReg.name]))
 
         def issue(newInstr: InternalInst, funcUnit: AbstractFunctionUnit):
@@ -131,7 +126,7 @@ class ControlUnit:
             self.execFinished = True
             return
         elif curInstr.instrType == Config.InstrType.NOP:
-            pass
+            self.PC.write(self.PC.read()+1)
         else:
             # See if we can find one available function unit that can execute curInstr. If so, issue it.
             for unit in self.funcUnitDict.values():
@@ -142,7 +137,7 @@ class ControlUnit:
                     # Link this instruction to fu
                     unit.newInstruction(curInstr, self.funcUnitDict,self.regStatusTable)
 
-                    self.PC += 1
+                    self.PC.write(self.PC.read()+1)
                     print("==issue==", unit)
                     break
             # Loop busy function units and let them execute a tick
