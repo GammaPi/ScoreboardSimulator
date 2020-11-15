@@ -126,30 +126,31 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
             # Mark the last cycle for Write Back. Change related table.
 
         if self.currentStage != self.nextStage:
+            revInThisCycle={}
+
             if self.currentStage is InstrState.READOP:
                 # This is the last cycle for ReadOP
                 self.fuStatusTable.rj = False
                 self.fuStatusTable.rk = False
-
-            if self.currentStage is InstrState.WB:
+            elif self.currentStage is InstrState.WB:
                 # This is the last cycle for WB
                 for unit in self.allFuDict.values():
                     # if Qj[f]=FU then Rj[f] ← Yes;
                     if unit.fuStatusTable.qj == self.id:
-                        unit.rj = True
-                        unit.qj = None
+                        unit.fuStatusTable.rj = True
+                        unit.fuStatusTable.qj = None
                     # if Qk[f]=FU then Rk[f] ← Yes;
-                    if unit.qk == self.id:
-                        unit.rk = True
-                        unit.qk = None
+                    if unit.fuStatusTable.qk == self.id:
+                        unit.fuStatusTable.rk = True
+                        unit.fuStatusTable.qk = None
 
                 self.regStatusTable[self.fuStatusTable.fi.name] = None
 
                 self.fuStatusTable.clear()
 
+                print('Finished exec',self._instruction)
+
                 self.status = FuStatus.IDLE
-        else:
-            assert False
 
     def _fromMemToReg(self, dstReg: AbstractRegister, address):
         self.DAR.write(address)

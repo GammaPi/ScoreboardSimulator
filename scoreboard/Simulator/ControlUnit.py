@@ -72,35 +72,31 @@ class ControlUnit:
                 not self.regStatusTable[instr.dstReg.name]))
 
         def issue(newInstr: InternalInst, funcUnit: AbstractFunctionUnit):
-            curFuTableEntry = self.fuStatusTable[funcUnit.id]
-
             # No need to check! It's control unit's duty to check if that
             # current FN is available, we can issue an instruction
 
             # 1.set Busy status
-            curFuTableEntry.busy = True  # Busy[FU] ← Yes;
+            funcUnit.fuStatusTable.busy = True  # Busy[FU] ← Yes;
 
             # 2.set the Operation type
-            self.operator = curFuTableEntry.operator = newInstr.instrType  # Op[FU] ← op;
+            funcUnit.fuStatusTable.operator = newInstr.instrType.opName  # Op[FU] ← op;
 
             # 3.set fi, fj, fk
-            self.fi, self.fj, self.fk = newInstr.dstReg, newInstr.src1Reg, newInstr.src2Reg  # Fi[FU] ← dst; Fj[FU] ← src1; Fk[FU] ← src2;
+            funcUnit.fuStatusTable.fi, funcUnit.fuStatusTable.fj, funcUnit.fuStatusTable.fk = newInstr.dstReg, newInstr.src1Reg, newInstr.src2Reg  # Fi[FU] ← dst; Fj[FU] ← src1; Fk[FU] ← src2;
 
             # 4.set qj, qk, rj, rk (the 1nd operand can be None eg: load / store )
-            index = self.regStatusTable[newInstr.src1Reg.name] if newInstr.src1Reg else None
-            if index != None and self.regStatusTable[index]:
-                self.qj = self.regStatusTable[index]
-                self.rj = False
+            if newInstr.src1Reg:
+                funcUnit.fuStatusTable.qj = self.regStatusTable[newInstr.src1Reg.name]
+                funcUnit.fuStatusTable.rj = funcUnit.fuStatusTable.qj is None
             # the 2nd operand can be None eg:ALUi
-            index = self.regStatusTable[newInstr.src2Reg.name] if newInstr.src2Reg else None
-            if index != None and self.regStatusTable[index]:
-                self.qk = self.regStatusTable[index]
-                self.rk = False
+            if newInstr.src2Reg:
+                funcUnit.fuStatusTable.qk = self.regStatusTable[newInstr.src2Reg.name]
+                funcUnit.fuStatusTable.rk = funcUnit.fuStatusTable.qk is None
+
 
             # 5.set RegisterStatus (dst can be None. eg: J)
-            index = self.regStatusTable[newInstr.dstReg.name] if newInstr.dstReg else None
-            if index != None:
-                self.regStatusTable[index] = funcUnit.id
+            if newInstr.dstReg:
+                self.regStatusTable[newInstr.dstReg.name] = funcUnit.id
 
         def fetchInstr():
             # Put PC's address to Instruction Address Register
@@ -126,7 +122,7 @@ class ControlUnit:
             self.execFinished = True
             return
         elif curInstr.instrType == Config.InstrType.NOP:
-            self.PC.write(self.PC.read()+1)
+            self.PC.write(self.PC.read() + 1)
         else:
             # See if we can find one available function unit that can execute curInstr. If so, issue it.
             for unit in self.funcUnitDict.values():
@@ -135,15 +131,31 @@ class ControlUnit:
                     # Link fu to this instruction
                     curInstr.fu = unit
                     # Link this instruction to fu
-                    unit.newInstruction(curInstr, self.funcUnitDict,self.regStatusTable)
+                    unit.newInstruction(curInstr, self.funcUnitDict, self.regStatusTable)
 
-                    self.PC.write(self.PC.read()+1)
+                    self.PC.write(self.PC.read() + 1)
                     print("==issue==", unit)
                     break
             # Loop busy function units and let them execute a tick
             for unit in self.funcUnitDict.values():
-                unit: AbstractFunctionUnit
                 if unit.fuStatusTable.busy:
                     unit.tick(self.cycleCounter)
-        self.cycleCounter += 1
         print("~~~~~~~~~")
+        self.cycleCounter += 1
+
+    def getRegisterStatus(self):
+        return self.regStatusTable
+
+    def getFuTable(self):
+        fuTable = {}
+        for unit in self.funcUnitDict.values():
+            fuTable[unit.id] = unit.fuStatusTable
+        return fuTable
+
+    def getInstrStatusTable(self):
+        instrStatusList = []
+        for unit in self.funcUnitDict.values():
+            unit:AbstractFunctionUnit
+            if unit.fuStatusTable.busy:
+                instrStatusList.append(unit._instruction)
+        return instrStatusList

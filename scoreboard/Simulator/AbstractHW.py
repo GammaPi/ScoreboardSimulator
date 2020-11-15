@@ -30,7 +30,8 @@ class AbstractRegister(metaclass=ABCMeta):
     @abstractmethod
     def write(self, value):
         pass
-
+    def __str__(self):
+        return self.name
 
 class AbstractStateMachine:
 
@@ -112,7 +113,8 @@ class InternalInst(Instruction):
         self.execFinishCycle = None
         self.wbStartCycle = None
         self.wbFinishCycle = None
-
+    def __str__(self):
+        return str({'Type':self.instrType.name,'IS':self.issueFinishCycle,'OP':self.readOpFinishCycle,'EX':self.execFinishCycle,'WB':self.wbFinishCycle})
 
 class AbstractMemory(metaclass=ABCMeta):
     def __init__(self, name: str, totalSize: int):
@@ -168,7 +170,8 @@ class FuStatusTableEntry:
         self.fi = self.fj = self.fk = None
         self.qj = self.qk = None
         self.rj = self.rk = True
-
+    def __str__(self):
+        return str({'BUSY':self.busy,'OP':self.operator,'Fi':str(self.fi),'Fj':str(self.fj),'Fk':str(self.fk),'Qj':str(self.qj),'Qk':str(self.qk),'Rj':str(self.rj),'Rk':str(self.rk)})
 
 class FuStatus(Enum):
     IDLE = 0
