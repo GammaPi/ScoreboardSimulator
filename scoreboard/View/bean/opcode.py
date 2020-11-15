@@ -9,6 +9,8 @@ def numberToBinaryInLength(number: int, length: int) -> str:
 
 
 def opOP(name: str) -> str:
+    if name == "":
+        return "000000"
     switch = {
         "NOP":      60,
         "HALT":     61,
@@ -32,13 +34,15 @@ def opOP(name: str) -> str:
         "J":        50
     }
     number = switch.get(name)
-    if(number == None):
+    if number is None:
         print("Unknown instruction name...Aborting")
         os.abort()
     return numberToBinaryInLength(number, 6)
 
 
 def opRD(name: str) -> str:
+    if str == "":
+        return "00000"
     number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 5)
 
@@ -60,11 +64,15 @@ def opFunc() -> str:
 
 
 def opIImmediate(name: str) -> str:
+    if str == "":
+        return "0000000000000000"
     number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 16)
 
 
 def opJImmediate(name: str) -> str:
+    if str == "":
+        return "00000000000000000000000000"
     number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 26)
 
