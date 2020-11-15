@@ -21,7 +21,7 @@ class UiController:
         return len(self.workflow.UIDs) + 1
 
     def getFinalDataToCycle(self, cycleNumber):  # return UIData start from 0
-        return Workflow.toUIData(cycleNumber)
+        return self.workflow.toUIData(cycleNumber)
 
 
 class UiTestController(UiController):
