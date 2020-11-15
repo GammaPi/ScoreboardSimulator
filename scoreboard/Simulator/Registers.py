@@ -1,8 +1,10 @@
+from Simulator import Config
 from Simulator.AbstractHW import AbstractRegister, RegType
+import re
 
 
 class GPReigster(AbstractRegister):
-    def __init__(self, name, numOfBits, regType: RegType, regId: int):
+    def __init__(self, name, numOfBits, regType: RegType):
         """
         :param name: The name of this reigster
         :param numOfBits: Number of bits of this register
@@ -10,7 +12,6 @@ class GPReigster(AbstractRegister):
         :param regId: id of this register. Used to find the corresponding reigster.
         """
         super().__init__(name, numOfBits, regType)
-        self.regId = regId
         self.value = 0
 
     def read(self):
@@ -21,8 +22,10 @@ class GPReigster(AbstractRegister):
 
 
 class IntRegister(GPReigster):
-    def __init__(self, name, regId):
-        super().__init__(name, 32, RegType.GP_INT, regId)
+    def __init__(self, name):
+        super().__init__(name, 32, RegType.GP_INT)
+        assert re.fullmatch(r'R\d+', name) is not None
+        assert 0 <= int(name[1:]) <= Config.GP_INT_REG_NUM
 
     def read(self):
         return super().read()
@@ -32,8 +35,10 @@ class IntRegister(GPReigster):
 
 
 class FloatRegister(GPReigster):
-    def __init__(self, name, regId):
-        super().__init__(name, 32, RegType.GP_FLOAT, regId)
+    def __init__(self, name):
+        super().__init__(name, 32, RegType.GP_FLOAT)
+        assert re.fullmatch(r'F\d+', name) is not None
+        assert 0 <= int(name[1:]) <= Config.GP_FLOAT_REG_NUM
 
     def read(self):
         return super().read()

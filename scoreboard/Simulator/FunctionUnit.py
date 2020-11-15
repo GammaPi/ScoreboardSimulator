@@ -79,20 +79,17 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
             # If a state change can happen. We'll change state to the next state. And this if will set correct status ahead of the first cycle in that stage.
             if self.nextStage == InstrState.ISSUE:
                 self.currentStage = self.nextStage  # We can always issue. canIssue has already been examined.
-                self._instruction.issueStartCycle = curCycle  # This is the first issue cycle
             elif self.nextStage == InstrState.READOP:
                 # Issue(Prev) -> ReadOP(Next)
                 if self.fuStatusTable.rj and self.fuStatusTable.rk:
                     # Scoreborading ReadOP (Should execute before the first cycle)
                     self.currentStage = self.nextStage
-                    self._instruction.readOpStartCycle = curCycle  # This is the first readOP cycle
                 else:
                     self.status = FuStatus.RAW
                     return  # Don't switch to new stage. This FU will Stall one cycle.
             elif self.nextStage == InstrState.EXEC:
                 # ReadOP(Prev) -> EXEC(Next)
                 self.currentStage = self.nextStage  # Exec can always proceed after ReadOP
-                self._instruction.execStartCycle = curCycle  # This is the first EXEC cycle
             elif self.nextStage == InstrState.WB:
                 # EXEC -> WB
                 canWB = True
@@ -108,7 +105,6 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                 if canWB:
                     # Scoreborading Write Back
                     self.currentStage = self.nextStage
-                    self._instruction.wbStartCycle = curCycle  # This is the first WB cycle
                 else:
                     self.status = FuStatus.WAR
                     return  # This FU will Stall one cycle.
@@ -118,28 +114,25 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         self.status = FuStatus.NORMAL
         if self.currentStage == InstrState.ISSUE:
             self._issue()
-            # Mark the last cycle for Issue. Change related table.
-            if self.nextStage is InstrState.READOP:
-                self._instruction.issueFinishCycle = curCycle
         elif self.currentStage == InstrState.READOP:
             self._readOp()
             # Mark the last cycle for Read Operator. Change related table.
-            if self.nextStage is InstrState.EXEC:
-                self.fuStatusTable.rj = False
-                self.fuStatusTable.rk = False
-                self._instruction.readOpFinishCycle = curCycle
         elif self.currentStage == InstrState.EXEC:
             self._execute()
             # Mark the last cycle for Execution. Change related table.
-            if self.nextStage is InstrState.WB:
-                self._instruction.execFinishCycle = curCycle
         elif self.currentStage == InstrState.WB:
             self._writeBack()
             # Mark the last cycle for Write Back. Change related table.
-            if self.nextStage is None:
-                self._instruction.wbFinishCycle = curCycle
 
-                # Clear
+
+        if self.currentStage != self.nextStage:
+            if self.currentStage is InstrState.READOP:
+                # This is the last cycle for ReadOP
+                self.fuStatusTable.rj = False
+                self.fuStatusTable.rk = False
+
+            if self.currentStage is InstrState.WB:
+                # This is the last cycle for WB
                 for unit in self.allFuDict.values():
                     # if Qj[f]=FU then Rj[f] ← Yes;
                     if unit.fuStatusTable.qj == self.id:
@@ -202,6 +195,9 @@ class IntFU(PsedoFunctionUnit):
         if finished:
             self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
 
+            if self._instruction.instrType == Config.InstrType.J:
+                self.nextStage = InstrState.EXEC  # J don't need read operator
+
     def _readOp(self):
         finished = self.readOpStateMachine.next()
         if finished:
@@ -258,18 +254,24 @@ class IntFU(PsedoFunctionUnit):
                 self._outputVal = int(self.A == self.B)  # src1==src2?
                 if bool(self._outputVal) == True:
                     self._branchTaken(self._instruction.immed)
+                self.nextStage = None  # Branch don't have WB stage.
             elif self._instruction.instrType == Config.InstrType.BNE:
                 self._outputVal = int(self.A != self.B)  # src1!=src2?
                 if bool(self._outputVal) == True:
                     self._branchTaken(self._instruction.immed)
+                self.nextStage = None  # Branch don't have WB stage.
             elif self._instruction.instrType == Config.InstrType.BEQZ:
                 self._outputVal = int(self.A == self.B)  # src1==0?
                 if bool(self._outputVal) == True:
                     self._branchTaken(self._instruction.immed)
+                self.nextStage = None  # Branch don't have WB stage.
             elif self._instruction.instrType == Config.InstrType.BNEZ:
                 self._outputVal = int(self.A != self.B)  # src1!=0?
                 if bool(self._outputVal) == True:
                     self._branchTaken(self._instruction.immed)
+                self.nextStage = None  # Branch don't have WB stage.
+            elif self._instruction.instrType == Config.InstrType.J:
+                self.nextStage = None
             else:
                 assert False
 

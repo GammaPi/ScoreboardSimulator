@@ -71,7 +71,17 @@ class Instruction:
         self.dstReg = dstReg
         self.src1Reg = src1Reg
         self.src2Reg = src2Reg
-        self.immed = immed  # immediate number
+        self.immed = None  # immediate number
+
+        if type(immed) == str:
+            assert str(int(immed)) == immed
+            self.immed = int(immed)
+        elif type(immed) == int:
+            self.immed = immed
+        elif immed == None:
+            self.immed = None
+        else:
+            assert False
 
 
 class InternalInst(Instruction):
