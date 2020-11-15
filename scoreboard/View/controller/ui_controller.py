@@ -17,7 +17,10 @@ class UiController:
     def start(self):  # UI start function, called only in the start phase
         self.workflow.workflow()
 
-    def getFinalDataToCycle(self, cycleNumber):  # return UIData
+    def getMaxCycle(self):
+        return len(self.workflow.UIDs) + 1
+
+    def getFinalDataToCycle(self, cycleNumber):  # return UIData start from 0
         return Workflow.toUIData(cycleNumber)
 
 

@@ -12,6 +12,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.uiController = UiController()
         # self.uiController = UiTestController()
         self.uiController.start()
+        self.maxCycleNumber = self.uiController.getMaxCycle() + 1
         # self.setupUi(self)
 
     def setUI(self, ui):
@@ -33,7 +34,7 @@ class MyMainWindow(QtWidgets.QMainWindow):
 
     def __updateView(self):
         self.__clearAll()
-        uiData = self.uiController.getFinalDataToCycle(self.cycleNumber)
+        uiData = self.uiController.getFinalDataToCycle(self.cycleNumber - 1)
         instructionFullStatusList = uiData.instructionFullStatusList
         instructionExtendList = uiData.instructionExtendList
         functionUnitStatusList = uiData.functionUnitStatus.functionUnitList
@@ -95,6 +96,8 @@ class MyMainWindow(QtWidgets.QMainWindow):
 
     def nextStepButtonClick(self):
         self.cycleNumber += 1
+        if self.cycleNumber > self.maxCycleNumber:
+            return
         self.__updateView()
 
     def upStepButtonClick(self):
