@@ -113,6 +113,7 @@ Assembler should perform these operations before program execution.
 
 | Directives |  Description|
 | ----------- | ------ |
+| .start  10  | starting location of program   |
 | .data       | start of data segment   |
 | NAME: .word  10| word 32 bits word |
 | NAME: .double 10.5| word 64 bits floating-point |
@@ -161,8 +162,8 @@ Instruction Formats:
 | DADDI reg,reg,imm| DADDI R2,R2,1 | add immediate|I-Format|INT|22|
 | DSUB reg,reg,reg| DSUB R5,R2,R3 | subtract integers|R-Format|INT|11|
 | DSUBI reg,reg,imm| DSUBI R3,R6,7 | subtract immediate|I-Format|INT|23|
-| DMUL freg,freg,freg| DMUL R3,R4,R2 |multiply intergers|R-Format|FP/Integer Multiplier|12|
-| DDIV freg,freg,freg| DDIV R1,R1,R1  |divide integers|R-Format|FP/Integer Divider|13|
+| DMUL reg,reg,reg | DMUL R3,R4,R2 |multiply intergers|R-Format|FP/Integer Multiplier|12|
+| DDIV reg,reg,reg | DDIV R1,R1,R1  |divide integers|R-Format|FP/Integer Divider|13|
 | ||||||
 | BEQ reg,reg,imm| BEQ R1,R2,-48  |branch if pair of registers are not equal|I-Format|INT|24|
 | BNE reg,reg,imm| BNE R2,R4,4  |branch if pair of registers are not equal|I-Format|INT|25|
