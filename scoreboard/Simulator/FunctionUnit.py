@@ -36,6 +36,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         self.status = FuStatus.NORMAL
 
         # Create new state machine for each stages. This is used in tick function
+
         # This state machine should be removed. We should let issue readop exec wb function control those stage because an acutal machine don't record each stage take how much time. It just naturally execute stage after stage.
         # self.instrStateMachine = MultiCycleDFA(
         #     [(InstrState.START, InstrState.ISSUE, 1),
@@ -44,8 +45,8 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         #      (InstrState.EXEC, InstrState.WB, self._instruction.instrType.execCycles),
         #      (InstrState.WB, InstrState.FINISH, self._instruction.instrType.wbCycles)], initialState=InstrState.START)
 
-        self.currentStage=InstrState.START
-        self.nextStage=InstrState.ISSUE
+        self.currentStage = InstrState.START
+        self.nextStage = InstrState.ISSUE
 
         # Use state mache to simulate step-by-step execution for issue,readop,exec,wb
         self.issueStateMachine = MultiCycleDFA(
@@ -73,26 +74,26 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
     def tick(self, curCycle: int):
 
-        if self.instrStateMachine.curState != self.instrStateMachine.peek():
+        if self.currentStage != self.nextStage:
             # curState here is previous stage. This if statement determines whether we can switch to a new stage based on scoreboarding criteria
             # If a state change can happen. We'll change state to the next state. And this if will set correct status ahead of the first cycle in that stage.
-            if self.instrStateMachine.peek() == InstrState.ISSUE:
-                self.instrStateMachine.next()  # We can always issue. canIssue has already been examined.
+            if self.nextStage == InstrState.ISSUE:
+                self.currentStage = self.nextStage  # We can always issue. canIssue has already been examined.
                 self._instruction.issueStartCycle = curCycle  # This is the first issue cycle
-            elif self.instrStateMachine.peek() == InstrState.READOP:
+            elif self.nextStage == InstrState.READOP:
                 # Issue(Prev) -> ReadOP(Next)
                 if self.fuStatusTable.rj and self.fuStatusTable.rk:
                     # Scoreborading ReadOP (Should execute before the first cycle)
-                    self.instrStateMachine.next()
+                    self.currentStage = self.nextStage
                     self._instruction.readOpStartCycle = curCycle  # This is the first readOP cycle
                 else:
                     self.status = FuStatus.RAW
                     return  # Don't switch to new stage. This FU will Stall one cycle.
-            elif self.instrStateMachine.peek() == InstrState.EXEC:
+            elif self.nextStage == InstrState.EXEC:
                 # ReadOP(Prev) -> EXEC(Next)
-                self.instrStateMachine.next()  # Exec can always proceed after ReadOP
+                self.currentStage = self.nextStage  # Exec can always proceed after ReadOP
                 self._instruction.execStartCycle = curCycle  # This is the first EXEC cycle
-            elif self.instrStateMachine.peek() == InstrState.WB:
+            elif self.nextStage == InstrState.WB:
                 # EXEC -> WB
                 canWB = True
                 for otherFU in self.allFuDict.values():
@@ -106,7 +107,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                             canWB = False
                 if canWB:
                     # Scoreborading Write Back
-                    self.instrStateMachine.next()
+                    self.currentStage = self.nextStage
                     self._instruction.wbStartCycle = curCycle  # This is the first WB cycle
                 else:
                     self.status = FuStatus.WAR
@@ -115,27 +116,27 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         # If we come to this place, it means we need to execute a cycle, and there are no more hazard
         # Execute a cycle based on currentState.
         self.status = FuStatus.NORMAL
-        if self.instrStateMachine.curState == InstrState.ISSUE:
+        if self.currentStage == InstrState.ISSUE:
             self._issue()
             # Mark the last cycle for Issue. Change related table.
-            if self.instrStateMachine.peek() is InstrState.READOP:
+            if self.nextStage is InstrState.READOP:
                 self._instruction.issueFinishCycle = curCycle
-        elif self.instrStateMachine.curState == InstrState.READOP:
+        elif self.currentStage == InstrState.READOP:
             self._readOp()
             # Mark the last cycle for Read Operator. Change related table.
-            if self.instrStateMachine.peek() is InstrState.EXEC:
+            if self.nextStage is InstrState.EXEC:
                 self.fuStatusTable.rj = False
                 self.fuStatusTable.rk = False
                 self._instruction.readOpFinishCycle = curCycle
-        elif self.instrStateMachine.curState == InstrState.EXEC:
+        elif self.currentStage == InstrState.EXEC:
             self._execute()
             # Mark the last cycle for Execution. Change related table.
-            if self.instrStateMachine.peek() is InstrState.WB:
+            if self.nextStage is InstrState.WB:
                 self._instruction.execFinishCycle = curCycle
-        elif self.instrStateMachine.curState == InstrState.WB:
+        elif self.currentStage == InstrState.WB:
             self._writeBack()
             # Mark the last cycle for Write Back. Change related table.
-            if self.instrStateMachine.peek() is None:
+            if self.nextStage is None:
                 self._instruction.wbFinishCycle = curCycle
 
                 # Clear
@@ -149,9 +150,6 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                         unit.rk = True
                         unit.qk = None
                 self.fuStatusTable.clear()
-
-                # Unbind
-                self.instrStateMachine = None
 
                 self.status = FuStatus.IDLE
         else:
@@ -199,29 +197,45 @@ class IntFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
+    def _issue(self):
+        finished = self.issueStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
+
     def _readOp(self):
-        if self._instruction.instrType in [Config.InstrType.LW, Config.InstrType.L_D]:
-            # self._outputVal = self.A + self.B  # imm + src1
-            self.A, self.B = self._instruction.immed, self._instruction.src1Reg.read()
-        elif self._instruction.instrType in [Config.InstrType.SW, Config.InstrType.S_D]:
-            # self._outputVal = self.A + self.B  # imm + dst
-            self.A, self.B = self._instruction.immed, self._instruction.dstReg.read()
-        elif self._instruction.instrType in [Config.InstrType.DADD,
-                                             Config.InstrType.DSUB,
-                                             Config.InstrType.BEQ,
-                                             Config.InstrType.BNE]:
-            # self._outputVal = self.A + self.B  # src1 + src2
-            self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
-        elif self._instruction.instrType == [Config.InstrType.DADDI, Config.InstrType.DSUBI]:
-            # self._outputVal = self.A + self.B  # src1+immed
-            self.A, self.B = self._instruction.src1Reg.read(), self._instruction.immed
-        elif self._instruction.instrType in [Config.InstrType.BEQZ, Config.InstrType.BNEZ]:
-            # self._outputVal = int(self.A == 0)  # src1==0?
-            self.A, self.B = self._instruction.src1Reg.read(), 0
+        finished = self.readOpStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            if self._instruction.instrType in [Config.InstrType.LW, Config.InstrType.L_D]:
+                # self._outputVal = self.A + self.B  # imm + src1
+                self.A, self.B = self._instruction.immed, self._instruction.src1Reg.read()
+            elif self._instruction.instrType in [Config.InstrType.SW, Config.InstrType.S_D]:
+                # self._outputVal = self.A + self.B  # imm + dst
+                self.A, self.B = self._instruction.immed, self._instruction.dstReg.read()
+            elif self._instruction.instrType in [Config.InstrType.DADD,
+                                                 Config.InstrType.DSUB,
+                                                 Config.InstrType.BEQ,
+                                                 Config.InstrType.BNE]:
+                # self._outputVal = self.A + self.B  # src1 + src2
+                self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
+            elif self._instruction.instrType == [Config.InstrType.DADDI, Config.InstrType.DSUBI]:
+                # self._outputVal = self.A + self.B  # src1+immed
+                self.A, self.B = self._instruction.src1Reg.read(), self._instruction.immed
+            elif self._instruction.instrType in [Config.InstrType.BEQZ, Config.InstrType.BNEZ]:
+                # self._outputVal = int(self.A == 0)  # src1==0?
+                self.A, self.B = self._instruction.src1Reg.read(), 0
 
     def _execute(self):
-        # Psedo calculation in the last cycle based on opCode
-        if finished == True:
+        finished = self.execStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # Psedo calculation in the last cycle based on opCode
             if self._instruction.instrType == Config.InstrType.LW:
                 # ALU calculate destination
                 self._outputVal = self.A + self.B  # imm + src1
@@ -259,30 +273,33 @@ class IntFU(PsedoFunctionUnit):
             else:
                 assert False
 
-        return finished
-
     def _writeBack(self):
-        super()._writeBack()
-        if self._instruction.instrType == Config.InstrType.LW:
-            # ALU calculate destination
-            self._fromMemToReg(self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.SW:
-            # ALU calculate destination
-            self._fromRegToMem(self._instruction.src1Reg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.L_D:
-            self._fromMemToReg(self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.S_D:
-            self._fromRegToMem(self._instruction.src1Reg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.DADD:
-            self._fromALUToReg(self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.DADDI:
-            self._fromALUToReg(self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.DSUB:
-            self._fromALUToReg(self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.DSUBI:
-            self._fromALUToReg(self._instruction.dstReg, self._outputVal)
-        else:
-            assert False
+        finished = self.wbStateMachine.next()
+        if finished:
+            self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            if self._instruction.instrType == Config.InstrType.LW:
+                # ALU calculate destination
+                self._fromMemToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.SW:
+                # ALU calculate destination
+                self._fromRegToMem(self._instruction.src1Reg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.L_D:
+                self._fromMemToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.S_D:
+                self._fromRegToMem(self._instruction.src1Reg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.DADD:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.DADDI:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.DSUB:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.DSUBI:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            else:
+                assert False
 
 
 class FPAdderFU(PsedoFunctionUnit):
@@ -303,33 +320,52 @@ class FPAdderFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
+    def _issue(self):
+        finished = self.issueStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
+
     def _readOp(self):
-        # FP Adder
-        if self._instruction.instrType in [Config.InstrType.ADD_D, Config.InstrType.SUB_D]:
-            # self._outputVal = self.A + self.B  # src1 + src2
-            self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
+        finished = self.readOpStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # FP Adder
+            if self._instruction.instrType in [Config.InstrType.ADD_D, Config.InstrType.SUB_D]:
+                # self._outputVal = self.A + self.B  # src1 + src2
+                self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
 
     def _execute(self):
-        finished = super()._execute()
+        finished = self.execStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
-        # Psedo calculation in the last cycle based on opCode
-        if finished == True:
-            if self._instruction.instrType == Config.InstrType.ADD_D:
-                self._outputVal = self.A + self.B  # src1 + src2
-            elif self._instruction.instrType == Config.InstrType.SUB_D:
-                self._outputVal = self.A - self.B  # src1 - src2
-            else:
-                assert False
-        return finished
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # Psedo calculation in the last cycle based on opCode
+            if finished == True:
+                if self._instruction.instrType == Config.InstrType.ADD_D:
+                    self._outputVal = self.A + self.B  # src1 + src2
+                elif self._instruction.instrType == Config.InstrType.SUB_D:
+                    self._outputVal = self.A - self.B  # src1 - src2
+                else:
+                    assert False
 
     def _writeBack(self):
-        super()._writeBack()
-        if self._instruction.instrType == Config.InstrType.ADD_D:
-            fromALUToReg(self, self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.SUB_D:
-            fromALUToReg(self, self._instruction.dstReg, self._outputVal)
-        else:
-            assert False
+        finished = self.wbStateMachine.next()
+        if finished:
+            self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            if self._instruction.instrType == Config.InstrType.ADD_D:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.SUB_D:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            else:
+                assert False
 
 
 class FPIntMulFU(PsedoFunctionUnit):
@@ -350,33 +386,53 @@ class FPIntMulFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
+    def _issue(self):
+        finished = self.issueStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
+
     def _readOp(self):
-        # FP/INT MUL
-        if self._instruction.instrType in [Config.InstrType.MUL_D, Config.InstrType.DMUL]:
-            # self._outputVal = self.A * self.B  # src1 * src2
-            self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
+        finished = self.readOpStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # FP/INT MUL
+            if self._instruction.instrType in [Config.InstrType.MUL_D, Config.InstrType.DMUL]:
+                # self._outputVal = self.A * self.B  # src1 * src2
+                self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
 
     def _execute(self):
-        finished = super()._execute()
+        finished = self.execStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
-        # Psedo calculation in the last cycle based on opCode
-        if finished == True:
-            if self._instruction.instrType == Config.InstrType.MUL_D:
-                self._outputVal = self.A * self.B  # src1 * src2
-            elif self._instruction.instrType == Config.InstrType.DMUL:
-                self._outputVal = self.A * self.B  # src1 * src2
-            else:
-                assert False
-        return finished
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # Psedo calculation in the last cycle based on opCode
+            if finished == True:
+                if self._instruction.instrType == Config.InstrType.MUL_D:
+                    self._outputVal = self.A * self.B  # src1 * src2
+                elif self._instruction.instrType == Config.InstrType.DMUL:
+                    self._outputVal = self.A * self.B  # src1 * src2
+                else:
+                    assert False
+            return finished
 
     def _writeBack(self):
-        super()._writeBack()
-        if self._instruction.instrType == Config.InstrType.MUL_D:
-            fromALUToReg(self, self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.DMUL:
-            fromALUToReg(self, self._instruction.dstReg, self._outputVal)
-        else:
-            assert False
+        finished = self.wbStateMachine.next()
+        if finished:
+            self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            if self._instruction.instrType == Config.InstrType.MUL_D:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.DMUL:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            else:
+                assert False
 
 
 class FPIntDivFU(PsedoFunctionUnit):
@@ -396,31 +452,48 @@ class FPIntDivFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
+    def _issue(self):
+        finished = self.issueStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
+
     def _readOp(self):
-        # FP/INT DIV
-        if self._instruction.instrType in [Config.InstrType.DIV_D, Config.InstrType.DDIV]:
-            # self._outputVal = self.A * self.B  # src1 * src2
-            self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
+        finished = self.readOpStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
+
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # FP/INT DIV
+            if self._instruction.instrType in [Config.InstrType.DIV_D, Config.InstrType.DDIV]:
+                # self._outputVal = self.A * self.B  # src1 * src2
+                self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
 
     def _execute(self):
-        finished = super()._execute()
+        finished = self.execStateMachine.next()
+        if finished:
+            self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
-        # Psedo calculation in the last cycle based on opCode
-        if finished == True:
-            if self._instruction.instrType == Config.InstrType.DIV_D:
-                self._outputVal = self.A // self.B  # src1 / src2
-            elif self._instruction.instrType == Config.InstrType.DDIV:
-                self._outputVal = self.A / self.B  # src1 / src2
-            else:
-                assert False
+            # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
+
+            # Psedo calculation in the last cycle based on opCode
+            if finished == True:
+                if self._instruction.instrType == Config.InstrType.DIV_D:
+                    self._outputVal = self.A // self.B  # src1 / src2
+                elif self._instruction.instrType == Config.InstrType.DDIV:
+                    self._outputVal = self.A / self.B  # src1 / src2
+                else:
+                    assert False
         return finished
 
     def _writeBack(self):
-        super()._writeBack()
+        finished = self.wbStateMachine.next()
+        if finished:
+            self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
 
-        if self._instruction.instrType == Config.InstrType.DIV_D:
-            fromALUToReg(self, self._instruction.dstReg, self._outputVal)
-        elif self._instruction.instrType == Config.InstrType.DDIV:
-            fromALUToReg(self, self._instruction.dstReg, self._outputVal)
-        else:
-            assert False
+            if self._instruction.instrType == Config.InstrType.DIV_D:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            elif self._instruction.instrType == Config.InstrType.DDIV:
+                self._fromALUToReg(self._instruction.dstReg, self._outputVal)
+            else:
+                assert False
