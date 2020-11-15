@@ -25,7 +25,7 @@ class Assembler:
         Parse a single instruction
         :param line: Instruction text
         """
-        symbols = list(filter(None, re.split(',| ', line)))  # Split instruction so that we can process
+        symbols = list(filter(None, re.split(',|\s|\(|\)', line)))  # Split instruction so that we can process
 
         opName = symbols[0]  # Find instruction type by it's op Name
         curInstrType: Config.InstrType = Config.InstrType[opName]
@@ -84,6 +84,11 @@ class Assembler:
             curInstr = Instruction(instrType=curInstrType, dstReg=None,
                                    src1Reg=None,
                                    src2Reg=None, immed=symbols[1])
+        else:
+            assert False
+
+        if curInstr:
+            self.instructions.append(curInstr)
         else:
             assert False
         return curInstr

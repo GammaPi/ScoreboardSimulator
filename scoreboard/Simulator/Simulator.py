@@ -59,3 +59,6 @@ class Simulator:
         self.controlUnit = ControlUnit(0, self.dataMemory, self.instrMemory, self.dataBus, self.instBus,
                                        self.registerDict,
                                        self.funcUnitDict)
+
+    def tick(self):
+        self.controlUnit.tick()
