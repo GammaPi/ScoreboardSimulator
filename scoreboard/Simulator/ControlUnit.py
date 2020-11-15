@@ -33,7 +33,7 @@ class ControlUnit:
         self.DAR = registerDict[RegType.SP_DAR]
         self.fltRegs = registerDict[RegType.GP_FLOAT]
         self.intRegs = registerDict[RegType.GP_INT]
-        self.registerDict=registerDict
+        self.registerDict = registerDict
 
         self.PC.write(entryPoint)  # Set PC to entry position.
 
@@ -53,6 +53,8 @@ class ControlUnit:
         self.cycleCounter = 1
 
         self.execFinished = False
+
+        self.halt = False
 
         self._outputVal = None
 
@@ -108,13 +110,13 @@ class ControlUnit:
 
             # Fetch instruction from instruction bus
             memoryInst: Instruction = self.instrBus.read()
-            internalInstr=InternalInst(memoryInst)
+            internalInstr = InternalInst(memoryInst)
             if memoryInst.dstReg:
-                internalInstr.dstReg=self.registerDict[memoryInst.dstReg.type][int(memoryInst.dstReg.name[1:])]
+                internalInstr.dstReg = self.registerDict[memoryInst.dstReg.type][int(memoryInst.dstReg.name[1:])]
             if memoryInst.src1Reg:
-                internalInstr.src1Reg=self.registerDict[memoryInst.src1Reg.type][int(memoryInst.src1Reg.name[1:])]
+                internalInstr.src1Reg = self.registerDict[memoryInst.src1Reg.type][int(memoryInst.src1Reg.name[1:])]
             if memoryInst.src2Reg:
-                internalInstr.src2Reg=self.registerDict[memoryInst.src2Reg.type][int(memoryInst.src2Reg.name[1:])]
+                internalInstr.src2Reg = self.registerDict[memoryInst.src2Reg.type][int(memoryInst.src2Reg.name[1:])]
 
             return internalInstr
 
@@ -122,28 +124,32 @@ class ControlUnit:
             # Execution already finished. Don't restart
             return
 
+        print('Cycle', self.cycleCounter)
+        print()
         # Read the next instruction.
-        curInstr: InternalInst = fetchInstr()
-        assert curInstr != None
+        curInstr = None
+        if not self.halt:
+            curInstr: InternalInst = fetchInstr()
+            assert curInstr != None
 
-        # if curInstr.instrType == Config.InstrType.HALT:
-            # self.execFinished = True
-            # return
-        if False and curInstr.instrType == Config.InstrType.NOP:
+        if curInstr and curInstr.instrType == Config.InstrType.HALT:
+            self.halt = True
+        if curInstr and curInstr.instrType == Config.InstrType.NOP:
             self.PC.write(self.PC.read() + 1)
         else:
             # See if we can find one available function unit that can execute curInstr. If so, issue it.
-            for unit in self.funcUnitDict.values():
-                if canIssue(curInstr, unit):
-                    issue(curInstr, unit)
-                    # Link fu to this instruction
-                    curInstr.fu = unit
-                    # Link this instruction to fu
-                    unit.newInstruction(curInstr, self)
+            if not self.halt:
+                for unit in self.funcUnitDict.values():
+                    if canIssue(curInstr, unit):
+                        issue(curInstr, unit)
+                        # Link fu to this instruction
+                        curInstr.fu = unit
+                        # Link this instruction to fu
+                        unit.newInstruction(curInstr, self)
 
-                    self.PC.write(self.PC.read() + 1)
-                    print("==issue==", curInstr)
-                    break
+                        self.PC.write(self.PC.read() + 1)
+                        print("==issue==", curInstr)
+                        break
             # Loop busy function units and let them execute a tick
             for unit in self.funcUnitDict.values():
                 if unit.fuStatusTable.busy:
@@ -164,17 +170,20 @@ class ControlUnit:
                 except Exception as e:
                     pass
 
-        # print("~~~~~~~~~")
-        print('Cycle',self.cycleCounter)
-        print()
         print(self.getRegisterStatus())
         print()
-        for key,value in self.getFuTable().items():
-            print(key,value)
+        for key, value in self.getFuTable().items():
+            print(key, value)
         print()
         for instr in self.getInstrStatusTable():
             print(instr)
 
+        if self.halt:
+            self.execFinished = True
+            instrStatusList = []
+            for unit in self.funcUnitDict.values():
+                if unit.fuStatusTable.busy:
+                    self.execFinished = False
 
         self.cycleCounter += 1
 
