@@ -139,7 +139,7 @@ class ControlUnit:
                     # Link fu to this instruction
                     curInstr.fu = unit
                     # Link this instruction to fu
-                    unit.newInstruction(curInstr, self.funcUnitDict, self.regStatusTable)
+                    unit.newInstruction(curInstr, self)
 
                     self.PC.write(self.PC.read() + 1)
                     print("==issue==", curInstr)
@@ -159,11 +159,10 @@ class ControlUnit:
 
                 # Perform simultaneous updates to register status table
                 try:
-                    self.regStatusTable = unit.regStatusTableNew
-                    del unit.regStatusTableNew
+                    self.regStatusTable = self.regStatusTableNew
+                    del self.regStatusTableNew
                 except Exception as e:
                     pass
-            # Perform updates to fuTable
 
         # print("~~~~~~~~~")
         print('Cycle',self.cycleCounter)

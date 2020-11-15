@@ -245,7 +245,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def newInstruction(self, newInstruction, allFuDict, regStatusTable):
+    def newInstruction(self, newInstruction, contolUnit):
         """
         Let this FU execute new instruction
         :param newInstruction: A new instruction from instruction memory

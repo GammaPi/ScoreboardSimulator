@@ -30,10 +30,9 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                  dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
         super().__init__(fuType, id, dataMemory, instrMemory, dataBus, instrBus, registerDict)
 
-    def newInstruction(self, newInstruction, allFuDict, regStatusTable):
+    def newInstruction(self, newInstruction,contolUnit):
         self._instruction: InternalInst = newInstruction
-        self.allFuDict = allFuDict
-        self.regStatusTable = regStatusTable
+        self.contolUnit=contolUnit
 
         self.status = FuStatus.NORMAL
 
@@ -95,7 +94,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
             elif self.nextStage == InstrState.WB:
                 # EXEC -> WB
                 canWB = True
-                for otherFU in self.allFuDict.values():
+                for otherFU in self.contolUnit.funcUnitDict.values():
                     if otherFU.id != self.id:
                         # ∀f {(Fj[f]≠Fi[FU] OR Rj[f]=No) AND (Fk[f]≠Fi[FU] OR Rk[f]=No)
                         if ((otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False) and
@@ -143,7 +142,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
             elif self.currentStage is InstrState.WB:
                 # This is the last cycle for WB
-                for unit in self.allFuDict.values():
+                for unit in self.contolUnit.funcUnitDict.values():
                     # Update the new table
                     try:
                         unit.fuStatusTableNew
@@ -159,12 +158,12 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                         unit.fuStatusTableNew.rk = True
                         unit.fuStatusTableNew.qk = None
 
-                # try:
-                #     self.regStatusTableNew
-                # except Exception as e:
-                #     self.regStatusTableNew = copy.copy(self.regStatusTable)
+                try:
+                    self.contolUnit.regStatusTableNew
+                except Exception as e:
+                    self.contolUnit.regStatusTableNew = copy.copy(self.contolUnit.regStatusTable)
 
-                self.regStatusTable[self.fuStatusTable.fi.name] = None
+                self.contolUnit.regStatusTableNew[self.fuStatusTable.fi.name] = None
 
                 self.fuStatusTableNew.clear()
 
