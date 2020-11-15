@@ -9,8 +9,8 @@ class MyMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.cycleNumber = 0
-        # self.uiController = UiController()
-        self.uiController = UiTestController()
+        self.uiController = UiController()
+        # self.uiController = UiTestController()
         self.uiController.start()
         # self.setupUi(self)
 

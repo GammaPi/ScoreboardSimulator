@@ -11,18 +11,21 @@ from View.bean.debug import writeTestTmpFile, print_UID
 
 
 class Workflow:
-
-    path: str = "tmp"
+    path: str = "../tmp"
     frames: list = []
     UIDs: list = []
     IFSList: list = []
 
-    @staticmethod
+    def __init__(self):
+        self.path = "tmp"
+        self.frames = []
+        self.UIDs = []
+        self.IFSList = []
+
     def readTmpFile(self, path: str):
         with open(path, 'r') as f:
             self.frames = json.load(f)
 
-    @staticmethod
     def updateIFSList(self, currentCycle: int, updates: list) -> list:
         for update in updates:
             if update.stage == "issue":
@@ -50,8 +53,7 @@ class Workflow:
                 os.abort()
         return self.IFSList
 
-    @staticmethod
-    def buildExtendList(sources: list) -> list:
+    def buildExtendList(self, sources: list) -> list:
         results = []
         for source in sources:
             result = InstructionExtend()
@@ -60,12 +62,11 @@ class Workflow:
             results.append(result)
         return results
 
-    @staticmethod
     def buildUIData(self):
         for frameDict in self.frames:
             UID = UIData()
             frame = Frame.newFrame(frameDict)
-            UID.instructionFullStatusList = self.updateIFSList(self, frame.currentCycle, frame.instructionStatusList)
+            UID.instructionFullStatusList = self.updateIFSList(frame.currentCycle, frame.instructionStatusList)
             UID.functionUnitStatus = frame.functionUnitStatus
             UID.registerStatusList = frame.registerStatusList
             UID.registerValueList = frame.registerValueList
@@ -75,23 +76,19 @@ class Workflow:
             UID.ProgramCounter = frame.ProgramCounter
             self.UIDs.append(copy.deepcopy(UID))
 
-    @staticmethod
     def toUIData(self, dst: int) -> UIData:
         return self.UIDs[dst]
 
-    @staticmethod
     def workflow(self):
-        writeTestTmpFile()
+        # writeTestTmpFile()
         # callSimulator()
-        self.readTmpFile(self, self.path)
-        self.buildUIData(self)
+        self.readTmpFile(self.path)
+        self.buildUIData()
         # callUI()
 
-        f = open("out.txt", "w")
-        print_UID(self.toUIData(self, 0), f)
-        print_UID(self.toUIData(self, 1), f)
-        f.close()
+        # f = open("out.txt", "w")
+        # print_UID(self.toUIData(0), f)
+        # print_UID(self.toUIData(1), f)
+        # f.close()
 
-
-
-Workflow.workflow(Workflow)
+# Workflow.workflow(Workflow)

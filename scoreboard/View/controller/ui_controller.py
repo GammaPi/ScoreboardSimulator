@@ -1,6 +1,7 @@
 from View.bean.instruction_extend import InstructionExtend
 from View.bean.instruction_full_status import InstructionFullStatus
 from View.bean.ui_data import UIData
+from View.bean.workflow import Workflow
 from common.bean.function_unit import FunctionUnit
 from common.bean.stall import stall
 from common.bean.function_unit_status import FunctionUnitStatus
@@ -10,12 +11,14 @@ from common.bean.register_value import RegisterValue
 
 
 class UiController:
+    def __init__(self):
+        self.workflow = Workflow()
 
     def start(self):  # UI start function, called only in the start phase
-        pass
+        self.workflow.workflow()
 
     def getFinalDataToCycle(self, cycleNumber):  # return UIData
-        pass
+        return Workflow.toUIData(cycleNumber)
 
 
 class UiTestController(UiController):
