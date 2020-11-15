@@ -60,16 +60,16 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
         self.prevState = InstrState.ISSUE
 
-    def _issue(self):
+    def _issue(self, curCycle):
         pass
 
-    def _readOp(self):
+    def _readOp(self, curCycle):
         pass
 
-    def _execute(self):
+    def _execute(self, curCycle):
         pass
 
-    def _writeBack(self):
+    def _writeBack(self, curCycle):
         pass
 
     def tick(self, curCycle: int):
@@ -113,17 +113,16 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         # Execute a cycle based on currentState.
         self.status = FuStatus.NORMAL
         if self.currentStage == InstrState.ISSUE:
-            self._issue()
+            self._issue(curCycle)
         elif self.currentStage == InstrState.READOP:
-            self._readOp()
+            self._readOp(curCycle)
             # Mark the last cycle for Read Operator. Change related table.
         elif self.currentStage == InstrState.EXEC:
-            self._execute()
+            self._execute(curCycle)
             # Mark the last cycle for Execution. Change related table.
         elif self.currentStage == InstrState.WB:
-            self._writeBack()
+            self._writeBack(curCycle)
             # Mark the last cycle for Write Back. Change related table.
-
 
         if self.currentStage != self.nextStage:
             if self.currentStage is InstrState.READOP:
@@ -190,17 +189,30 @@ class IntFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
-    def _issue(self):
+    def _issue(self, curCycle):
+        # Update issue cycle
+        if not self._instruction.issueStartCycle:
+            self._instruction.issueStartCycle = curCycle
+
         finished = self.issueStateMachine.next()
         if finished:
+            # Update issue cycle
+            self._instruction.issueFinishCycle = curCycle
+
             self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
 
             if self._instruction.instrType == Config.InstrType.J:
                 self.nextStage = InstrState.EXEC  # J don't need read operator
 
-    def _readOp(self):
+    def _readOp(self, curCycle):
+        # Update readop cycle
+        if not self._instruction.readOpStartCycle:
+            self._instruction.readOpStartCycle = curCycle
+
         finished = self.readOpStateMachine.next()
         if finished:
+            self._instruction.readOpFinishCycle = curCycle
+
             self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -224,9 +236,15 @@ class IntFU(PsedoFunctionUnit):
                 # self._outputVal = int(self.A == 0)  # src1==0?
                 self.A, self.B = self._instruction.src1Reg.read(), 0
 
-    def _execute(self):
+    def _execute(self, curCycle):
+        # Update exec cycle
+        if not self._instruction.execStartCycle:
+            self._instruction.execStartCycle = curCycle
+
         finished = self.execStateMachine.next()
         if finished:
+            self._instruction.execFinishCycle = curCycle
+
             self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -275,9 +293,15 @@ class IntFU(PsedoFunctionUnit):
             else:
                 assert False
 
-    def _writeBack(self):
+    def _writeBack(self, curCycle):
+        # Update wb cycle
+        if not self._instruction.wbStartCycle:
+            self._instruction.wbStartCycle = curCycle
+
         finished = self.wbStateMachine.next()
         if finished:
+            self._instruction.wbFinishCycle = curCycle
+
             self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -322,14 +346,25 @@ class FPAdderFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
-    def _issue(self):
+    def _issue(self, curCycle):
+        # Update issue cycle
+        if not self._instruction.issueStartCycle:
+            self._instruction.issueStartCycle = curCycle
+
         finished = self.issueStateMachine.next()
         if finished:
+            self._instruction.issueFinishCycle = curCycle
+
             self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
 
-    def _readOp(self):
+    def _readOp(self, curCycle):
+        if not self._instruction.readOpStartCycle:
+            self._instruction.readOpStartCycle = curCycle
+
         finished = self.readOpStateMachine.next()
         if finished:
+            self._instruction.readOpFinishCycle = curCycle
+
             self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -339,9 +374,15 @@ class FPAdderFU(PsedoFunctionUnit):
                 # self._outputVal = self.A + self.B  # src1 + src2
                 self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
 
-    def _execute(self):
+    def _execute(self, curCycle):
+        # Update exec cycle
+        if not self._instruction.execStartCycle:
+            self._instruction.execStartCycle = curCycle
+
         finished = self.execStateMachine.next()
         if finished:
+            self._instruction.execFinishCycle = curCycle
+
             self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -355,9 +396,14 @@ class FPAdderFU(PsedoFunctionUnit):
                 else:
                     assert False
 
-    def _writeBack(self):
+    def _writeBack(self, curCycle):
+        if not self._instruction.wbStartCycle:
+            self._instruction.wbStartCycle = curCycle
+
         finished = self.wbStateMachine.next()
         if finished:
+            self._instruction.wbFinishCycle = curCycle
+
             self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -388,14 +434,25 @@ class FPIntMulFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
-    def _issue(self):
+    def _issue(self, curCycle):
+        # Update issue cycle
+        if not self._instruction.issueStartCycle:
+            self._instruction.issueStartCycle = curCycle
+
         finished = self.issueStateMachine.next()
         if finished:
+            self._instruction.issueFinishCycle = curCycle
+
             self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
 
-    def _readOp(self):
+    def _readOp(self, curCycle):
+        if not self._instruction.readOpStartCycle:
+            self._instruction.readOpStartCycle = curCycle
+
         finished = self.readOpStateMachine.next()
         if finished:
+            self._instruction.readOpFinishCycle = curCycle
+
             self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -405,9 +462,15 @@ class FPIntMulFU(PsedoFunctionUnit):
                 # self._outputVal = self.A * self.B  # src1 * src2
                 self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
 
-    def _execute(self):
+    def _execute(self, curCycle):
+        # Update exec cycle
+        if not self._instruction.execStartCycle:
+            self._instruction.execStartCycle = curCycle
+
         finished = self.execStateMachine.next()
         if finished:
+            self._instruction.execFinishCycle = curCycle
+
             self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -422,9 +485,14 @@ class FPIntMulFU(PsedoFunctionUnit):
                     assert False
             return finished
 
-    def _writeBack(self):
+    def _writeBack(self, curCycle):
+        if not self._instruction.wbStartCycle:
+            self._instruction.wbStartCycle = curCycle
+
         finished = self.wbStateMachine.next()
         if finished:
+            self._instruction.wbFinishCycle = curCycle
+
             self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -454,14 +522,25 @@ class FPIntDivFU(PsedoFunctionUnit):
         self.A = None  # A port
         self.B = None  # B port
 
-    def _issue(self):
+    def _issue(self, curCycle):
+        # Update issue cycle
+        if not self._instruction.issueStartCycle:
+            self._instruction.issueStartCycle = curCycle
+
         finished = self.issueStateMachine.next()
         if finished:
+            self._instruction.issueFinishCycle = curCycle
+
             self.nextStage = InstrState.READOP  # Let tick execute readOp next time. Since issue already finished.
 
-    def _readOp(self):
+    def _readOp(self, curCycle):
+        if not self._instruction.readOpStartCycle:
+            self._instruction.readOpStartCycle = curCycle
+
         finished = self.readOpStateMachine.next()
         if finished:
+            self._instruction.readOpFinishCycle = curCycle
+
             self.nextStage = InstrState.EXEC  # Let tick execute EXEC next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -471,9 +550,15 @@ class FPIntDivFU(PsedoFunctionUnit):
                 # self._outputVal = self.A * self.B  # src1 * src2
                 self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
 
-    def _execute(self):
+    def _execute(self, curCycle):
+        # Update exec cycle
+        if not self._instruction.execStartCycle:
+            self._instruction.execStartCycle = curCycle
+
         finished = self.execStateMachine.next()
         if finished:
+            self._instruction.execFinishCycle = curCycle
+
             self.nextStage = InstrState.WB  # Let tick execute WB next time. Since issue already finished.
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -488,9 +573,14 @@ class FPIntDivFU(PsedoFunctionUnit):
                     assert False
         return finished
 
-    def _writeBack(self):
+    def _writeBack(self, curCycle):
+        if not self._instruction.wbStartCycle:
+            self._instruction.wbStartCycle = curCycle
+
         finished = self.wbStateMachine.next()
         if finished:
+            self._instruction.wbFinishCycle = curCycle
+
             self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
 
             if self._instruction.instrType == Config.InstrType.DIV_D:
