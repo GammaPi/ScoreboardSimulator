@@ -75,6 +75,7 @@ class Instruction:
         self.src1Reg = src1Reg
         self.src2Reg = src2Reg
         self.immed = None  # immediate number
+        self.address=None
 
         if type(immed) == str:
             assert str(int(immed)) == immed
