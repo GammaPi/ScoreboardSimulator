@@ -60,6 +60,7 @@ class Simulator:
                                        self.registerDict,
                                        self.funcUnitDict)
 
+
     def tick(self):
         self.controlUnit.tick()
 

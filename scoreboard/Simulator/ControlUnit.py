@@ -33,6 +33,7 @@ class ControlUnit:
         self.DAR = registerDict[RegType.SP_DAR]
         self.fltRegs = registerDict[RegType.GP_FLOAT]
         self.intRegs = registerDict[RegType.GP_INT]
+        self.registerDict=registerDict
 
         self.PC.write(entryPoint)  # Set PC to entry position.
 
@@ -93,7 +94,6 @@ class ControlUnit:
                 funcUnit.fuStatusTable.qk = self.regStatusTable[newInstr.src2Reg.name]
                 funcUnit.fuStatusTable.rk = funcUnit.fuStatusTable.qk is None
 
-
             # 5.set RegisterStatus (dst can be None. eg: J)
             if newInstr.dstReg:
                 self.regStatusTable[newInstr.dstReg.name] = funcUnit.id
@@ -108,7 +108,15 @@ class ControlUnit:
 
             # Fetch instruction from instruction bus
             memoryInst: Instruction = self.instrBus.read()
-            return InternalInst(memoryInst)
+            internalInstr=InternalInst(memoryInst)
+            if memoryInst.dstReg:
+                internalInstr.dstReg=self.registerDict[memoryInst.dstReg.type][int(memoryInst.dstReg.name[1:])]
+            if memoryInst.src1Reg:
+                internalInstr.src1Reg=self.registerDict[memoryInst.src1Reg.type][int(memoryInst.src1Reg.name[1:])]
+            if memoryInst.src2Reg:
+                internalInstr.src2Reg=self.registerDict[memoryInst.src2Reg.type][int(memoryInst.src2Reg.name[1:])]
+
+            return internalInstr
 
         if self.execFinished:
             # Execution already finished. Don't restart
@@ -140,7 +148,35 @@ class ControlUnit:
             for unit in self.funcUnitDict.values():
                 if unit.fuStatusTable.busy:
                     unit.tick(self.cycleCounter)
-        print("~~~~~~~~~")
+
+            for unit in self.funcUnitDict.values():
+                # Perform simultaneous updates to fuTable
+                try:
+                    unit.fuStatusTable = unit.fuStatusTableNew
+                    del unit.fuStatusTableNew
+                except Exception as e:
+                    pass
+
+                # Perform simultaneous updates to register status table
+                try:
+                    self.regStatusTable = unit.regStatusTableNew
+                    del unit.regStatusTableNew
+                except Exception as e:
+                    pass
+            # Perform updates to fuTable
+
+        # print("~~~~~~~~~")
+        print('Cycle',self.cycleCounter)
+        print()
+        print(self.getRegisterStatus())
+        print()
+        for key,value in self.getFuTable().items():
+            print(key,value)
+        print()
+        for instr in self.getInstrStatusTable():
+            print(instr)
+
+
         self.cycleCounter += 1
 
     def getRegisterStatus(self):
@@ -149,13 +185,13 @@ class ControlUnit:
     def getFuTable(self):
         fuTable = {}
         for unit in self.funcUnitDict.values():
-            fuTable[unit.id] = unit.fuStatusTable
+            fuTable[unit.id] = str(unit.fuStatusTable)
         return fuTable
 
     def getInstrStatusTable(self):
         instrStatusList = []
         for unit in self.funcUnitDict.values():
-            unit:AbstractFunctionUnit
+            unit: AbstractFunctionUnit
             if unit.fuStatusTable.busy:
-                instrStatusList.append(unit._instruction)
+                instrStatusList.append(str(unit._instruction))
         return instrStatusList

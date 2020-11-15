@@ -3,6 +3,7 @@ from Simulator.StateMachine import MultiCycleDFA
 from Simulator.AbstractHW import AbstractFunctionUnit, AbstractMemory, AbstractBus, AbstractRegister, InternalInst, \
     RegType, FuStatusTableEntry, FuStatus
 from enum import Enum
+import copy
 
 '''
 Function unit is a sub-component inside ControlUnit.
@@ -126,29 +127,48 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
             # Mark the last cycle for Write Back. Change related table.
 
         if self.currentStage != self.nextStage:
-            revInThisCycle={}
+            revInThisCycle = {}
 
+            # Shallow copy fuStatusTable
+            try:
+                self.fuStatusTableNew
+            except Exception as e:
+                self.fuStatusTableNew = copy.copy(self.fuStatusTable)
+
+            # Do update on the new fuStatusTable
             if self.currentStage is InstrState.READOP:
                 # This is the last cycle for ReadOP
-                self.fuStatusTable.rj = False
-                self.fuStatusTable.rk = False
+                self.fuStatusTableNew.rj = False
+                self.fuStatusTableNew.rk = False
+
             elif self.currentStage is InstrState.WB:
                 # This is the last cycle for WB
                 for unit in self.allFuDict.values():
+                    # Update the new table
+                    try:
+                        unit.fuStatusTableNew
+                    except Exception as e:
+                        unit.fuStatusTableNew = copy.copy(unit.fuStatusTable)
+
                     # if Qj[f]=FU then Rj[f] ← Yes;
                     if unit.fuStatusTable.qj == self.id:
-                        unit.fuStatusTable.rj = True
-                        unit.fuStatusTable.qj = None
+                        unit.fuStatusTableNew.rj = True
+                        unit.fuStatusTableNew.qj = None
                     # if Qk[f]=FU then Rk[f] ← Yes;
                     if unit.fuStatusTable.qk == self.id:
-                        unit.fuStatusTable.rk = True
-                        unit.fuStatusTable.qk = None
+                        unit.fuStatusTableNew.rk = True
+                        unit.fuStatusTableNew.qk = None
 
-                self.regStatusTable[self.fuStatusTable.fi.name] = None
+                try:
+                    self.regStatusTableNew
+                except Exception as e:
+                    self.regStatusTableNew = copy.copy(self.regStatusTable)
 
-                self.fuStatusTable.clear()
+                self.regStatusTableNew[self.fuStatusTable.fi.name] = None
 
-                print('Finished exec',self._instruction)
+                self.fuStatusTableNew.clear()
+
+                print('Finished exec', self._instruction)
 
                 self.status = FuStatus.IDLE
 
