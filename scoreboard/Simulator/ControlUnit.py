@@ -126,10 +126,10 @@ class ControlUnit:
         curInstr: InternalInst = fetchInstr()
         assert curInstr != None
 
-        if curInstr.instrType == Config.InstrType.HALT:
-            self.execFinished = True
-            return
-        elif curInstr.instrType == Config.InstrType.NOP:
+        # if curInstr.instrType == Config.InstrType.HALT:
+            # self.execFinished = True
+            # return
+        if False and curInstr.instrType == Config.InstrType.NOP:
             self.PC.write(self.PC.read() + 1)
         else:
             # See if we can find one available function unit that can execute curInstr. If so, issue it.
@@ -142,7 +142,7 @@ class ControlUnit:
                     unit.newInstruction(curInstr, self.funcUnitDict, self.regStatusTable)
 
                     self.PC.write(self.PC.read() + 1)
-                    print("==issue==", unit)
+                    print("==issue==", curInstr)
                     break
             # Loop busy function units and let them execute a tick
             for unit in self.funcUnitDict.values():

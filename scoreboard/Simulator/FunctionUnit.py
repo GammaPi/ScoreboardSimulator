@@ -159,12 +159,12 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                         unit.fuStatusTableNew.rk = True
                         unit.fuStatusTableNew.qk = None
 
-                try:
-                    self.regStatusTableNew
-                except Exception as e:
-                    self.regStatusTableNew = copy.copy(self.regStatusTable)
+                # try:
+                #     self.regStatusTableNew
+                # except Exception as e:
+                #     self.regStatusTableNew = copy.copy(self.regStatusTable)
 
-                self.regStatusTableNew[self.fuStatusTable.fi.name] = None
+                self.regStatusTable[self.fuStatusTable.fi.name] = None
 
                 self.fuStatusTableNew.clear()
 
