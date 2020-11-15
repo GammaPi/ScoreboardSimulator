@@ -1,6 +1,6 @@
 from Simulator import Config
 from Simulator.AbstractHW import AbstractRegister, AbstractFunctionUnit, AbstractMemory, AbstractBus, RegType, \
-    InternalInst, Instruction
+    InternalInst, Instruction, StallInfo
 from Simulator.FunctionUnit import IntFU, FPIntMulFU, FPIntDivFU, FPAdderFU
 import Simulator.Config as Config
 from Simulator.StateMachine import MultiCycleDFA
@@ -58,6 +58,8 @@ class ControlUnit:
 
         self._outputVal = None
 
+        self.stallList = []  # (Stall Type, From, To)
+
     def tick(self):
         '''
         Simulate a clock cycle
@@ -71,13 +73,26 @@ class ControlUnit:
             :param funcUnit:
             :return:
             """
-            return (instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy) and (
+            canIssue = (instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy) and (
                 not self.regStatusTable[instr.dstReg.name]))
+
+            if not canIssue:
+                # Add those to stall list
+                if funcUnit.fuStatusTable.busy:
+                    self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
+                                                    fromReg=instr.dstReg
+                                                    , toReg=funcUnit.id))
+                if self.regStatusTable[instr.dstReg.name]:
+                    self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
+                                                    fromReg=instr.dstReg
+                                                    , toReg=self.funcUnitDict[
+                            self.regStatusTable[instr.dstReg.name]].dstReg))
+
+            return canIssue
 
         def issue(newInstr: InternalInst, funcUnit: AbstractFunctionUnit):
             # No need to check! It's control unit's duty to check if that
             # current FN is available, we can issue an instruction
-
             # 1.set Busy status
             funcUnit.fuStatusTable.busy = True  # Busy[FU] ← Yes;
 
@@ -123,9 +138,12 @@ class ControlUnit:
         if self.execFinished:
             # Execution already finished. Don't restart
             return
-
+        print('==========================================')
         print('Cycle', self.cycleCounter)
         print()
+
+        self.stallList = []  # Clean stall states
+
         # Read the next instruction.
         curInstr = None
         if not self.halt:
@@ -170,13 +188,27 @@ class ControlUnit:
                 except Exception as e:
                     pass
 
-        print(self.getRegisterStatus())
-        print()
+        # Add stallInfo from all function units to this stall list.
+        for unit in self.funcUnitDict.values():
+            self.stallList.extend(unit.stallList)
+
+        print('RegStatus:',self.getRegisterStatus(), '\n')
+        print('Function Unit Status:\n')
         for key, value in self.getFuTable().items():
             print(key, value)
         print()
-        for instr in self.getInstrStatusTable():
-            print(instr)
+
+        if len(self.getInstrStatusTable())>0:
+            print('Active instruction:')
+            for instr in self.getInstrStatusTable():
+                print(instr)
+
+            if len(self.stallList)>0:
+                print('STALL:')
+                for stallInfo in self.stallList:
+                    print(str(stallInfo))
+
+
 
         if self.halt:
             self.execFinished = True
@@ -187,6 +219,8 @@ class ControlUnit:
 
         self.cycleCounter += 1
 
+    def currentStalls(self):
+        return self.stallList
     def getRegisterStatus(self):
         return self.regStatusTable
 

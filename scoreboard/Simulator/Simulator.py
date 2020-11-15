@@ -2,7 +2,7 @@ from Simulator.ControlUnit import ControlUnit
 from Simulator.Memory import DictMemory
 from Simulator.FunctionUnit import IntFU, FPIntDivFU, FPAdderFU, FPIntMulFU
 from Simulator.Registers import IntRegister, FloatRegister, PC, IAR, DAR, IR
-from Simulator.AbstractHW import RegType, AbstractFunctionUnit, InternalInst, AbstractRegister
+from Simulator.AbstractHW import RegType, AbstractFunctionUnit, InternalInst, AbstractRegister, StallInfo
 import Simulator.Config as Config
 from Simulator.Bus import Bus
 from common.bean.frame import Frame
@@ -138,6 +138,12 @@ class Simulator:
             registerValueList.append(RegisterValue.newRegisterValue(freg.name, str(freg.read())))
         frame.registerValueList = registerValueList
         frame.log = ""
+
+        stallList = []
+        for stallInfo in self.controlUnit.stallList:
+            stallList.append(stall.newStall(stallInfo.stallType.name, str(stallInfo.toReg), str(stallInfo.fromReg)))
+
+        frame.stallList = stallList
 
         self.frameList.append(frame)
 

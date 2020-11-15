@@ -1,7 +1,7 @@
 from Simulator import Config
 from Simulator.StateMachine import MultiCycleDFA
 from Simulator.AbstractHW import AbstractFunctionUnit, AbstractMemory, AbstractBus, AbstractRegister, InternalInst, \
-    RegType, FuStatusTableEntry, FuStatus
+    RegType, FuStatusTableEntry, FuStatus, StallInfo
 from enum import Enum
 import copy
 
@@ -30,9 +30,9 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                  dataBus: AbstractBus, instrBus: AbstractBus, registerDict: dict):
         super().__init__(fuType, id, dataMemory, instrMemory, dataBus, instrBus, registerDict)
 
-    def newInstruction(self, newInstruction,contolUnit):
+    def newInstruction(self, newInstruction, contolUnit):
         self._instruction: InternalInst = newInstruction
-        self.contolUnit=contolUnit
+        self.contolUnit = contolUnit
 
         self.status = FuStatus.NORMAL
 
@@ -74,7 +74,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         pass
 
     def tick(self, curCycle: int):
-
+        self.stallList=[]
         if self.currentStage != self.nextStage:
             # curState here is previous stage. This if statement determines whether we can switch to a new stage based on scoreboarding criteria
             # If a state change can happen. We'll change state to the next state. And this if will set correct status ahead of the first cycle in that stage.
@@ -87,6 +87,16 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                     self.currentStage = self.nextStage
                 else:
                     self.status = FuStatus.RAW
+                    if not self.fuStatusTable.rj:
+                        self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
+                                                        fromReg=self._instruction.dstReg
+                                                        , toReg=self.contolUnit.funcUnitDict[self.fuStatusTable.qj]._instruction.dstReg))
+                    if not self.fuStatusTable.rk:
+                        self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
+                                                        fromReg=self._instruction.dstReg
+                                                        , toReg=self.contolUnit.funcUnitDict[
+                                self.fuStatusTable.qk]._instruction.dstReg))
+
                     return  # Don't switch to new stage. This FU will Stall one cycle.
             elif self.nextStage == InstrState.EXEC:
                 # ReadOP(Prev) -> EXEC(Next)
@@ -108,6 +118,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                     self.currentStage = self.nextStage
                 else:
                     self.status = FuStatus.WAR
+                    # todo: detect war hazard
                     return  # This FU will Stall one cycle.
 
         # If we come to this place, it means we need to execute a cycle, and there are no more hazard
@@ -167,7 +178,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
                 self.fuStatusTableNew.clear()
 
-                print('Finished exec', self._instruction)
+                print('Note: Finished exec:', self._instruction,'\n')
 
                 self.status = FuStatus.IDLE
 
