@@ -80,12 +80,12 @@ class ControlUnit:
                 # Add those to stall list
                 if funcUnit.fuStatusTable.busy:
                     self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
-                                                    fromReg=instr.dstReg
-                                                    , toReg=funcUnit.id))
+                                                    depFrom=instr.address
+                                                    , depTo=funcUnit.id))
                 if self.regStatusTable[instr.dstReg.name]:
                     self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
-                                                    fromReg=instr.dstReg
-                                                    , toReg=self.funcUnitDict[
+                                                    depFrom=instr.dstReg
+                                                    , depTo=self.funcUnitDict[
                             self.regStatusTable[instr.dstReg.name]].dstReg))
 
             return canIssue
@@ -119,13 +119,14 @@ class ControlUnit:
             # Put PC's address to Instruction Address Register
             self.IAR.write(self.PC.read())
             # Get instruction from instrMemory. Address is specified by IAR.
-            temp = self.instrMemory.read(self.IAR.read())
+            instrAddress = self.IAR.read()
+            temp = self.instrMemory.read(instrAddress)
             # Put this value to instruction bus.
             self.instrBus.write(temp)
 
             # Fetch instruction from instruction bus
             memoryInst: Instruction = self.instrBus.read()
-            internalInstr = InternalInst(memoryInst)
+            internalInstr = InternalInst(memoryInst, address=instrAddress)
             if memoryInst.dstReg:
                 internalInstr.dstReg = self.registerDict[memoryInst.dstReg.type][int(memoryInst.dstReg.name[1:])]
             if memoryInst.src1Reg:
@@ -192,23 +193,21 @@ class ControlUnit:
         for unit in self.funcUnitDict.values():
             self.stallList.extend(unit.stallList)
 
-        print('RegStatus:',self.getRegisterStatus(), '\n')
+        print('RegStatus:', self.getRegisterStatus(), '\n')
         print('Function Unit Status:\n')
         for key, value in self.getFuTable().items():
             print(key, value)
         print()
 
-        if len(self.getInstrStatusTable())>0:
+        if len(self.getInstrStatusTable()) > 0:
             print('Active instruction:')
             for instr in self.getInstrStatusTable():
                 print(instr)
 
-            if len(self.stallList)>0:
+            if len(self.stallList) > 0:
                 print('STALL:')
                 for stallInfo in self.stallList:
                     print(str(stallInfo))
-
-
 
         if self.halt:
             self.execFinished = True
@@ -221,6 +220,7 @@ class ControlUnit:
 
     def currentStalls(self):
         return self.stallList
+
     def getRegisterStatus(self):
         return self.regStatusTable
 

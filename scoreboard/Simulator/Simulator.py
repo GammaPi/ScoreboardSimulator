@@ -85,10 +85,10 @@ class Simulator:
         ]
 
         instrStatusList = []
-        for key,unit in self.funcUnitDict.items():
-                if unit.fuStatusTable.busy or unit.justWb:
-                    instrStatusList.append(unit._instruction)
-                    unit.justWb=False
+        for key, unit in self.funcUnitDict.items():
+            if unit.fuStatusTable.busy or unit.justWb:
+                instrStatusList.append(unit._instruction)
+                unit.justWb = False
 
         for instruction in instrStatusList:
 
@@ -103,10 +103,8 @@ class Simulator:
                 curStatusName = "wb"
             else:
                 assert False
-            if instruction.fu.status in [FuStatus.WAR,FuStatus.RAW]:
+            if instruction.fu.status in [FuStatus.WAR, FuStatus.RAW]:
                 curStatusName = "stall"
-
-
 
             # todo: Am I wrong for (address field)
 
@@ -202,9 +200,16 @@ class Simulator:
 
         stallList = []
         for stallInfo in self.controlUnit.stallList:
-            stallList.append(
-                stall.newStall(stallInfo.stallType.name, str(stallInfo.toReg), str(stallInfo.fromReg)))
-
+            if stallInfo.stallType == StallInfo.Type.STRUCTURAL:
+                stallList.append(
+                    stall.newStall(type=stallInfo.stallType.name,
+                                   dependToRegister=str(stallInfo.depTo)+"(FU)",
+                                   dependFromRegister=str(stallInfo.depFrom)+"(addr)"))
+            else:
+                stallList.append(
+                    stall.newStall(type=stallInfo.stallType.name,
+                                   dependToRegister=str(stallInfo.depTo) + "(Reg)",
+                                   dependFromRegister=str(stallInfo.depFrom) + "(Reg)"))
         frame.stallList = stallList
 
         self.frameList.append(frame)

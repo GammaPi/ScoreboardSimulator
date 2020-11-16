@@ -74,9 +74,8 @@ class Instruction:
         self.dstReg = dstReg
         self.src1Reg = src1Reg
         self.src2Reg = src2Reg
-        self.immed = None  # immediate number
-        self.address = None
 
+        self.immed = None  # immediate number
         if type(immed) == str:
             assert str(int(immed)) == immed
             self.immed = int(immed)
@@ -94,7 +93,7 @@ class InternalInst(Instruction):
     It expands Instruction with some state variables
     '''
 
-    def __init__(self, instrFromMemory: Instruction):
+    def __init__(self, instrFromMemory: Instruction, address):
         """
         :param instrType: Type of instruction
         :param dstReg: A tuple of (AbstractHW.RegType,regId). RegId maybe none.
@@ -105,7 +104,7 @@ class InternalInst(Instruction):
         """
         super().__init__(instrFromMemory.instrType, instrFromMemory.dstReg, instrFromMemory.src1Reg,
                          instrFromMemory.src2Reg, instrFromMemory.immed)
-        self.address = instrFromMemory.address
+        self.address = address
         self.fu: AbstractFunctionUnit = None  # Which function unit is executing this instruction
 
         self.issueStartCycle = None
@@ -196,13 +195,13 @@ class StallInfo:
         WAW = 3
         STRUCTURAL = 4
 
-    def __init__(self, stallType: Type, fromReg: AbstractRegister, toReg: AbstractRegister):
+    def __init__(self, stallType: Type, depFrom, depTo):
         self.stallType = stallType
-        self.fromReg = fromReg
-        self.toReg = toReg
+        self.depFrom = depFrom
+        self.depTo = depTo
 
     def __str__(self):
-        return ''.join([self.stallType.name, ' ', str(self.fromReg), ' ---> ', str(self.toReg)])
+        return ''.join([self.stallType.name, ' ', str(self.depFrom), ' ---> ', str(self.depTo)])
 
 
 class AbstractFunctionUnit(metaclass=ABCMeta):
@@ -230,8 +229,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         self._instruction: InternalInst = None  # The instruction this FU is executing.
         self.stallList = []  # Used to store stall info
 
-        self.justWb = False #Used to submit last WB instruction to UI
-
+        self.justWb = False  # Used to submit last WB instruction to UI
 
     def _issue(self, curCycle):
         """

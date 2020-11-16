@@ -89,12 +89,12 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                     self.status = FuStatus.RAW
                     if not self.fuStatusTable.rj:
                         self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
-                                                        fromReg=self._instruction.dstReg
-                                                        , toReg=self.contolUnit.funcUnitDict[self.fuStatusTable.qj]._instruction.dstReg))
+                                                        depFrom=self._instruction.dstReg
+                                                        , depTo=self.contolUnit.funcUnitDict[self.fuStatusTable.qj]._instruction.dstReg))
                     if not self.fuStatusTable.rk:
                         self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
-                                                        fromReg=self._instruction.dstReg
-                                                        , toReg=self.contolUnit.funcUnitDict[
+                                                        depFrom=self._instruction.dstReg
+                                                        , depTo=self.contolUnit.funcUnitDict[
                                 self.fuStatusTable.qk]._instruction.dstReg))
 
                     return  # Don't switch to new stage. This FU will Stall one cycle.
