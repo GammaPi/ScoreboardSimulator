@@ -120,7 +120,20 @@ class Simulator:
                                                    operandLeftName=instruction.src1Reg.name,
                                                    operandRightName=instruction.src2Reg.name if instruction.src1Reg else "",
                                                    destinationName=str(instruction.immed)), curStatusName))
-            if instruction.instrType.instFormat in [Config.InstrFormat.I_FORMAT, Config.InstrFormat.FI_FORMAT]:
+            elif instruction.instrType in [Config.InstrType.S_D,Config.InstrType.SW]:
+                #Merge immed and a register to right operator
+                frame.instructionStatusList.append(
+                    InstructionStatus.newInstructionStatus(
+                        Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
+                                                   address=str(instruction.address),
+                                                   name=instruction.instrType.opName,
+                                                   format=instruction.instrType.instFormat.uiName,
+                                                   operandLeftName=instruction.src1Reg.name,
+                                                   operandRightName=''.join([instruction.src2Reg.name,'(',str(instruction.immed),')']),
+                                                   destinationName=""),
+                        curStatusName))
+
+            elif instruction.instrType.instFormat in [Config.InstrFormat.I_FORMAT, Config.InstrFormat.FI_FORMAT]:
                 frame.instructionStatusList.append(
                     InstructionStatus.newInstructionStatus(
                         Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
