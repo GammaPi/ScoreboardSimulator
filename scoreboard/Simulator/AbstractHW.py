@@ -149,7 +149,7 @@ class AbstractMemory(metaclass=ABCMeta):
         pass
 
 
-class AbstractBus(metaclass=ABCMeta):
+class AbstractBus:
     def __init__(self, name, numBits):
         """
         :param name: Bus name
@@ -157,12 +157,11 @@ class AbstractBus(metaclass=ABCMeta):
         """
         self.name = name
         self.numBits = numBits
+        self.BUSY=True
 
-    @abstractmethod
     def read(self):
         pass
 
-    @abstractmethod
     def write(self, value):
         pass
 
@@ -294,7 +293,7 @@ class StallInfo:
         self.depToInstr = depToInstr
 
         if self.stallType is StallInfo.Type.STRUCTURAL:
-            assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractFunctionUnit) and depToInstr is None
+            assert isinstance(depFrom, InternalInst) and depFromInstr is None and depToInstr is None
         else:
             assert isinstance(depFrom, AbstractRegister) and isinstance(depTo, AbstractRegister) \
                    and isinstance(depFromInstr, InternalInst) and depFromInstr is not None \

@@ -219,6 +219,10 @@ class ControlUnit:
                 except Exception as e:
                     pass
 
+            #Remove BUSY FLAG
+            if self.dataBus.BUSY:
+                self.dataBus.BUSY=False
+
         # Add stallInfo from all function units to this stall list.
         for unit in self.funcUnitDict.values():
             self.stallList.extend(unit.stallList)

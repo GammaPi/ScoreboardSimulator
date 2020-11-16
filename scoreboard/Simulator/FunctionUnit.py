@@ -118,9 +118,9 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                     if otherFU.id != self.id:
                         # ∀f {(Fj[f]≠Fi[FU] OR Rj[f]=No) AND (Fk[f]≠Fi[FU] OR Rk[f]=No)
                         otherFuRjDontNeedReadDst = (
-                                    otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False)  # If dst is other fu's rj and reading is not complete
+                                otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False)  # If dst is other fu's rj and reading is not complete
                         otherFuRkDontNeedReadDst = (
-                                    otherFU.fuStatusTable.fk != self.fuStatusTable.fi or otherFU.fuStatusTable.rk == False)  # If dst is other fu's rk and reading is not complete
+                                otherFU.fuStatusTable.fk != self.fuStatusTable.fi or otherFU.fuStatusTable.rk == False)  # If dst is other fu's rk and reading is not complete
 
                         if (otherFuRjDontNeedReadDst and otherFuRkDontNeedReadDst):
                             pass
@@ -144,6 +144,15 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                                                                 depFromInstr=self._instruction,
                                                                 depTo=conflictInstr.src2Reg,
                                                                 depToInstr=conflictInstr))
+
+                if self.dataBus.BUSY == True:
+                    canWB = False
+                    # print('WB structural hazard')
+                    self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
+                                                    depFrom=self._instruction,
+                                                    depFromInstr=None,
+                                                    depTo=self.dataBus,
+                                                    depToInstr=None))
                 if canWB:
                     # Scoreborading Write Back
                     self.currentStage = self.nextStage
@@ -247,7 +256,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
     def _branchTaken(self, targetAddress):
         self.PC.write(targetAddress)
         # Clear branch flag. Let CU issue instr from this new place
-        self.contolUnit.branch=False
+        self.contolUnit.branch = False
 
 
 class IntFU(PsedoFunctionUnit):
@@ -284,8 +293,9 @@ class IntFU(PsedoFunctionUnit):
                 self.nextStage = InstrState.EXEC  # J don't need read operator
                 # Mark branch flag. Let CU stop issue another instruction until directoin is known.
 
-            if self._instruction.instrType in [Config.InstrType.BEQ,Config.InstrType.BNE,Config.InstrType.BEQZ,Config.InstrType.BNEZ,Config.InstrType.J]:
-                self.contolUnit.branch=True
+            if self._instruction.instrType in [Config.InstrType.BEQ, Config.InstrType.BNE, Config.InstrType.BEQZ,
+                                               Config.InstrType.BNEZ, Config.InstrType.J]:
+                self.contolUnit.branch = True
 
     def _readOp(self, curCycle):
         # Update readop cycle
@@ -378,6 +388,7 @@ class IntFU(PsedoFunctionUnit):
                 assert False
 
     def _writeBack(self, curCycle):
+        self.dataBus.BUSY = True
         # Update wb cycle
         if not self._instruction.wbStartCycle:
             self._instruction.wbStartCycle = curCycle
@@ -385,7 +396,6 @@ class IntFU(PsedoFunctionUnit):
         finished = self.wbStateMachine.next()
         if finished:
             self._instruction.wbFinishCycle = curCycle
-
             self.nextStage = None  # Tell tick this execution has finished. And there's no next stage
 
             # Execute actual logic in the last cycle. (Pretend these instructions are executed during the past cycles)
@@ -478,7 +488,8 @@ class FPAdderFU(PsedoFunctionUnit):
                 elif self._instruction.instrType == Config.InstrType.SUB_D:
                     self._outputVal = self.A - self.B  # src1 - src2
                 else:
-                    assert False
+                    print('WARNING: Instruction %s \'s execution code undefined' % (self._instruction.instrType.name))
+                #     assert False
 
     def _writeBack(self, curCycle):
         if not self._instruction.wbStartCycle:
@@ -497,7 +508,8 @@ class FPAdderFU(PsedoFunctionUnit):
             elif self._instruction.instrType == Config.InstrType.SUB_D:
                 self._fromALUToReg(self._instruction.dstReg, self._outputVal)
             else:
-                assert False
+                print('WARNING: Instruction %s \'s writeback code undefined' % (self._instruction.instrType.name))
+                #     assert False
 
 
 class FPIntMulFU(PsedoFunctionUnit):
@@ -566,7 +578,8 @@ class FPIntMulFU(PsedoFunctionUnit):
                 elif self._instruction.instrType == Config.InstrType.DMUL:
                     self._outputVal = self.A * self.B  # src1 * src2
                 else:
-                    assert False
+                    print('WARNING: Instruction %s \'s execution code undefined' % (self._instruction.instrType.name))
+                #     assert False
             return finished
 
     def _writeBack(self, curCycle):
@@ -586,7 +599,8 @@ class FPIntMulFU(PsedoFunctionUnit):
             elif self._instruction.instrType == Config.InstrType.DMUL:
                 self._fromALUToReg(self._instruction.dstReg, self._outputVal)
             else:
-                assert False
+                print('WARNING: Instruction %s \'s writeback code undefined' % (self._instruction.instrType.name))
+            #     assert False
 
 
 class FPIntDivFU(PsedoFunctionUnit):
@@ -654,7 +668,8 @@ class FPIntDivFU(PsedoFunctionUnit):
                 elif self._instruction.instrType == Config.InstrType.DDIV:
                     self._outputVal = self.A / self.B  # src1 / src2
                 else:
-                    assert False
+                    print('WARNING: Instruction %s \'s execution code undefined' % (self._instruction.instrType.name))
+                #     assert False
         return finished
 
     def _writeBack(self, curCycle):
@@ -672,4 +687,5 @@ class FPIntDivFU(PsedoFunctionUnit):
             elif self._instruction.instrType == Config.InstrType.DDIV:
                 self._fromALUToReg(self._instruction.dstReg, self._outputVal)
             else:
-                assert False
+                print('WARNING: Instruction %s \'s writeback code undefined' % (self._instruction.instrType.name))
+            #     assert False

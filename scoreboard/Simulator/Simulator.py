@@ -2,7 +2,8 @@ from Simulator.ControlUnit import ControlUnit
 from Simulator.Memory import DictMemory
 from Simulator.FunctionUnit import IntFU, FPIntDivFU, FPAdderFU, FPIntMulFU
 from Simulator.Registers import IntRegister, FloatRegister, PC, IAR, DAR, IR
-from Simulator.AbstractHW import RegType, AbstractFunctionUnit, InternalInst, AbstractRegister, StallInfo, FuStatus
+from Simulator.AbstractHW import RegType, AbstractFunctionUnit, InternalInst, AbstractRegister, StallInfo, FuStatus, \
+    AbstractBus
 import Simulator.Config as Config
 from Simulator.Bus import Bus
 from common.bean.frame import Frame
@@ -200,16 +201,23 @@ class Simulator:
 
         stallList = []
         for stallInfo in self.controlUnit.stallList:
-            if stallInfo.stallType == StallInfo.Type.STRUCTURAL:
+            if stallInfo.stallType == StallInfo.Type.STRUCTURAL and isinstance(stallInfo.depTo, AbstractFunctionUnit):
                 stallList.append(
                     stall.newStall(type=stallInfo.stallType.name,
                                    dependToRegister='FU[%s]' % (str(stallInfo.depTo.id)),
                                    dependFromRegister='Instr[%d]' % (stallInfo.depFrom.address)))
+            elif stallInfo.stallType == StallInfo.Type.STRUCTURAL and isinstance(stallInfo.depTo, AbstractBus):
+                stallList.append(
+                    stall.newStall(type=stallInfo.stallType.name,
+                                   dependToRegister='%s' % (str(stallInfo.depTo.name)),
+                                   dependFromRegister='Instr[%d]' % (stallInfo.depFrom.address)))
             else:
                 stallList.append(
                     stall.newStall(type=stallInfo.stallType.name,
-                                   dependToRegister='Reg[%s] Instr[%d]' % (str(stallInfo.depTo.name), stallInfo.depToInstr.address),
-                                   dependFromRegister='Reg[%s] Instr[%d]' % (str(stallInfo.depFrom.name) ,stallInfo.depFromInstr.address)
+                                   dependToRegister='Reg[%s] Instr[%d]' % (
+                                   str(stallInfo.depTo.name), stallInfo.depToInstr.address),
+                                   dependFromRegister='Reg[%s] Instr[%d]' % (
+                                   str(stallInfo.depFrom.name), stallInfo.depFromInstr.address)
                                    ))
         frame.stallList = stallList
 
