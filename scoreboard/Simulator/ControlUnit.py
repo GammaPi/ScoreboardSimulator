@@ -65,30 +65,50 @@ class ControlUnit:
         Simulate a clock cycle
         '''
 
-        def canIssue(instr: InternalInst, funcUnit: AbstractFunctionUnit):
+        def canIssue(instr: InternalInst):
             """
             If (!Busy[FU] AND !Result[dst]) , then return an avaiable function unit.
             If not, return None
-            :param instr:
-            :param funcUnit:
-            :return:
+            :param instr: New Instructoin
+            :return: Return funcitonUnit if canIssue, other wise return None
             """
-            canIssue = (instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy) and (
-                not self.regStatusTable[instr.dstReg.name]))
 
-            if instr.instrType.funcUnit == funcUnit.type and not canIssue:
-                # Add those to stall list
-                if funcUnit.fuStatusTable.busy:
-                    self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
-                                                    depFrom=instr.address
-                                                    , depTo=funcUnit.id))
-                if self.regStatusTable[instr.dstReg.name]:
-                    self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
-                                                    depFrom=instr.dstReg
-                                                    , depTo=self.funcUnitDict[
-                            self.regStatusTable[instr.dstReg.name]].dstReg))
+            availableFu = None
+            strHazardFU = []  # All busy FUs that cause structural hazard
+            # if there's one avaiable FU, then even if other fu are busy we can still issue.
+            # This list will be empty if availableFu!=None)
 
-            return canIssue
+            for funcUnit in self.funcUnitDict.values():
+                if instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy):
+                    availableFu = funcUnit
+                    strHazardFU = []
+                    break
+                else:
+                    strHazardFU.append(funcUnit)
+            wawHazard = self.regStatusTable[instr.dstReg.name] is not None
+
+            rltCanIssue = (availableFu != None and not wawHazard)
+
+            if not rltCanIssue:
+                # Add analysis to stallList
+                if availableFu is None:
+                    # Structural Hazard
+                    for problemFu in strHazardFU:
+                        self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
+                                                        depFrom=instr
+                                                        , depTo=problemFu))
+
+                if wawHazard:
+                    # The id of function unit executing that conflict instruction
+                    fuIdWAW = self.regStatusTable[instr.dstReg.name]
+                    conflictInstr = self.funcUnitDict[fuIdWAW]._instruction
+                    self.stallList.append(StallInfo(stallType=StallInfo.Type.WAW,
+                                                    depFrom=instr
+                                                    , depTo=conflictInstr.dstReg))
+                return None
+            else:
+                # Can Issue, return corresponding fu
+                return availableFu
 
         def issue(newInstr: InternalInst, funcUnit: AbstractFunctionUnit):
             # No need to check! It's control unit's duty to check if that
@@ -158,17 +178,17 @@ class ControlUnit:
         else:
             # See if we can find one available function unit that can execute curInstr. If so, issue it.
             if not self.halt:
-                for unit in self.funcUnitDict.values():
-                    if canIssue(curInstr, unit):
-                        issue(curInstr, unit)
-                        # Link fu to this instruction
-                        curInstr.fu = unit
-                        # Link this instruction to fu
-                        unit.newInstruction(curInstr, self)
+                avaiableFu = canIssue(curInstr)
+                if avaiableFu:
+                    issue(curInstr, avaiableFu)
+                    # Link fu to this instruction
+                    curInstr.fu = avaiableFu
+                    # Link this instruction to fu
+                    avaiableFu.newInstruction(curInstr, self)
 
-                        self.PC.write(self.PC.read() + 1)
-                        print("==issue==", curInstr)
-                        break
+                    self.PC.write(self.PC.read() + 1)
+                    print("==issue==", curInstr)
+
             # Loop busy function units and let them execute a tick
             for unit in self.funcUnitDict.values():
                 if unit.fuStatusTable.busy:

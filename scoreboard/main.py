@@ -9,6 +9,7 @@ if __name__ == '__main__':
     assembler = Assembler("test2.in")
     simulator = Simulator()
 
+    #todo: specify instruction starting point.Currently assume 0.
     # Write instructions into instruction memory.
     for i in range(len(assembler.instructions)):
         simulator.instrMemory.write(i, assembler.instructions[i])

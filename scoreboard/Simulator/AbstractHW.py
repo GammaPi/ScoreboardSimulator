@@ -17,17 +17,15 @@ class RegType(Enum):
     SP_DAR = 8
 
 
-class AbstractRegister(metaclass=ABCMeta):
+class AbstractRegister:
     def __init__(self, name, numOfBits, regType: RegType):
         self.numOfBits = numOfBits
         self.name = name
         self.type = regType
 
-    @abstractmethod
     def read(self):
         pass
 
-    @abstractmethod
     def write(self, value):
         pass
 
@@ -188,20 +186,6 @@ class FuStatus(Enum):
     WAR = 3
 
 
-class StallInfo:
-    class Type(Enum):
-        RAW = 1
-        WAR = 2
-        WAW = 3
-        STRUCTURAL = 4
-
-    def __init__(self, stallType: Type, depFrom, depTo):
-        self.stallType = stallType
-        self.depFrom = depFrom
-        self.depTo = depTo
-
-    def __str__(self):
-        return ''.join([self.stallType.name, ' ', str(self.depFrom), ' ---> ', str(self.depTo)])
 
 
 class AbstractFunctionUnit(metaclass=ABCMeta):
@@ -279,3 +263,30 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         :param allFuDict: All the fus inside control unit.
         """
         pass
+
+class StallInfo:
+    class Type(Enum):
+        RAW = 1
+        WAR = 2
+        WAW = 3
+        STRUCTURAL = 4
+
+    def __init__(self, stallType: Type, depFrom, depTo):
+        """
+        For STRUCTURAL hazard, type(depFrom) is a subclass of  InternalInstr, type(depTo) is a subclass of AbstractFunctionUnit,
+        For WAW,RAW,WAR hazard, type(depFrom) is a subclass of  InternalInstr, type(depTo) is a subclass of AbstractRegister,
+
+
+        """
+        self.stallType = stallType
+        self.depFrom = depFrom
+        self.depTo = depTo
+
+        if self.stallType is StallInfo.Type.STRUCTURAL:
+            assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractFunctionUnit)
+        else:
+            assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractRegister)
+
+
+    def __str__(self):
+        return ''.join([self.stallType.name, ' ', str(self.depFrom), ' ---> ', str(self.depTo)])
