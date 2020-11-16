@@ -19,6 +19,7 @@ class Workflow:
     def __init__(self):
         self.path = "tmp"
         self.frames = []
+        self.realFrames = []
         self.UIDs = []
         self.IFSList = []
 
@@ -51,7 +52,7 @@ class Workflow:
             elif update.stage == "stall":
                 pass
             else:
-                print("Unknown Stage Status..Aborting")
+                print("Unknown Stage Status: "+update.stage+"..Aborting")
                 os.abort()
         return self.IFSList
 
@@ -66,8 +67,32 @@ class Workflow:
 
     def buildUIData(self):
         for frameDict in self.frames:
-            UID = UIData()
             frame = Frame.newFrame(frameDict)
+            self.realFrames.append(frame)
+
+        killTarget = []
+        for idx, frame in enumerate(self.realFrames):
+            for idxInstr, instr in enumerate(frame.instructionStatusList):
+                if instr.stage == "execute" and idx != len(self.realFrames)-1:
+                    find = False
+                    for futureFrame in self.realFrames[idx+1:]:
+                        for instr2 in futureFrame.instructionStatusList:
+                            if instr.instruction.issueCycle == instr2.instruction.issueCycle and instr2.stage == "execute":
+                                killTarget.append([idx, instr.instruction.issueCycle])
+                                find = True
+                                break
+                        if find is True:
+                            break
+
+        for idx, frame in enumerate(self.realFrames):
+            newISL = []
+            for instr in frame.instructionStatusList:
+                if [idx, instr.instruction.issueCycle] not in killTarget:
+                    newISL.append(instr)
+            frame.instructionStatusList = copy.deepcopy(newISL)
+
+        for frame in self.realFrames:
+            UID = UIData()
             UID.instructionFullStatusList = self.updateIFSList(frame.currentCycle, frame.instructionStatusList)
             UID.functionUnitStatus = frame.functionUnitStatus
             UID.registerStatusList = frame.registerStatusList
@@ -78,8 +103,12 @@ class Workflow:
             UID.ProgramCounter = frame.ProgramCounter
             self.UIDs.append(copy.deepcopy(UID))
 
+
     def toUIData(self, dst: int) -> UIData:
         return self.UIDs[dst]
+
+    def lengthOfUIDs(self):
+        return len(self.UIDs)
 
     def workflow(self):
         # writeTestTmpFile()

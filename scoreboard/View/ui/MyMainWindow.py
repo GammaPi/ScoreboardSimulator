@@ -95,9 +95,9 @@ class MyMainWindow(QtWidgets.QMainWindow):
         self.ui.pcLabel.setText(QtCore.QCoreApplication.translate("MainWindow", "PC:" + programCounter))
 
     def nextStepButtonClick(self):
-        self.cycleNumber += 1
-        if self.cycleNumber > self.maxCycleNumber:
+        if self.cycleNumber >= self.maxCycleNumber-1:
             return
+        self.cycleNumber += 1
         self.__updateView()
 
     def upStepButtonClick(self):

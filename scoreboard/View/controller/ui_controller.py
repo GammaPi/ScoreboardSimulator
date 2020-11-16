@@ -18,7 +18,7 @@ class UiController:
         self.workflow.workflow()
 
     def getMaxCycle(self):
-        return len(self.workflow.UIDs) + 1
+        return self.workflow.lengthOfUIDs()
 
     def getFinalDataToCycle(self, cycleNumber):  # return UIData start from 0
         return self.workflow.toUIData(cycleNumber)
