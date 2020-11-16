@@ -113,7 +113,7 @@ class Simulator:
                 frame.instructionStatusList.append(
                     InstructionStatus.newInstructionStatus(
                         Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                                   address=instruction.address,
+                                                   address=str(instruction.address),
                                                    name=instruction.instrType.opName,
                                                    format=instruction.instrType.instFormat.uiName,
                                                    operandLeftName=instruction.src1Reg.name,
@@ -123,7 +123,7 @@ class Simulator:
                 frame.instructionStatusList.append(
                     InstructionStatus.newInstructionStatus(
                         Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                                   address=instruction.address,
+                                                   address=str(instruction.address),
                                                    name=instruction.instrType.opName,
                                                    format=instruction.instrType.instFormat.uiName,
                                                    operandLeftName=instruction.src1Reg.name,
@@ -136,7 +136,7 @@ class Simulator:
                 frame.instructionStatusList.append(
                     InstructionStatus.newInstructionStatus(
                         Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                                   address=instruction.address,
+                                                   address=str(instruction.address),
                                                    name=instruction.instrType.opName,
                                                    format=instruction.instrType.instFormat.uiName,
                                                    operandLeftName=instruction.src1Reg.name,
@@ -146,7 +146,7 @@ class Simulator:
             elif instruction.instrType.instFormat in [Config.InstrFormat.J_FORMAT]:
                 InstructionStatus.newInstructionStatus(
                     Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                               address=instruction.address,
+                                               address=str(instruction.address),
                                                name=instruction.instrType.opName,
                                                format=instruction.instrType.instFormat.uiName,
                                                operandLeftName='',
@@ -157,7 +157,7 @@ class Simulator:
                 frame.instructionStatusList.append(
                     InstructionStatus.newInstructionStatus(
                         Instruction.newInstruction(issueCycle=instruction.issueStartCycle, tag="",
-                                                   address=instruction.address,
+                                                   address=str(instruction.address),
                                                    name=instruction.instrType.opName,
                                                    format=instruction.instrType.instFormat.uiName,
                                                    operandLeftName='',
@@ -204,7 +204,7 @@ class Simulator:
                 stallList.append(
                     stall.newStall(type=stallInfo.stallType.name,
                                    dependToRegister=str(stallInfo.depTo)+"(FU)",
-                                   dependFromRegister=str(stallInfo.depFrom)+"(addr)"))
+                                   dependFromRegister=str(stallInfo.depFrom)+"(instr addr)"))
             else:
                 stallList.append(
                     stall.newStall(type=stallInfo.stallType.name,

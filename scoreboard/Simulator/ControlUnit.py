@@ -76,7 +76,7 @@ class ControlUnit:
             canIssue = (instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy) and (
                 not self.regStatusTable[instr.dstReg.name]))
 
-            if not canIssue:
+            if instr.instrType.funcUnit == funcUnit.type and not canIssue:
                 # Add those to stall list
                 if funcUnit.fuStatusTable.busy:
                     self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
