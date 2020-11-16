@@ -48,6 +48,8 @@ class Workflow:
                     if IFS.issueStartCycle == update.instruction.issueCycle:
                         IFS.writeResultStartCycle = currentCycle
                         break
+            elif update.stage == "stall":
+                pass
             else:
                 print("Unknown Stage Status..Aborting")
                 os.abort()

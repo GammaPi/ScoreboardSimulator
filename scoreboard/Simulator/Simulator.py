@@ -2,7 +2,7 @@ from Simulator.ControlUnit import ControlUnit
 from Simulator.Memory import DictMemory
 from Simulator.FunctionUnit import IntFU, FPIntDivFU, FPAdderFU, FPIntMulFU
 from Simulator.Registers import IntRegister, FloatRegister, PC, IAR, DAR, IR
-from Simulator.AbstractHW import RegType, AbstractFunctionUnit, InternalInst, AbstractRegister, StallInfo
+from Simulator.AbstractHW import RegType, AbstractFunctionUnit, InternalInst, AbstractRegister, StallInfo, FuStatus
 import Simulator.Config as Config
 from Simulator.Bus import Bus
 from common.bean.frame import Frame
@@ -83,7 +83,14 @@ class Simulator:
 
         frame.instructionStatusList = [
         ]
-        for instruction in self.controlUnit.getInstrStatusTable():
+
+        instrStatusList = []
+        for key,unit in self.funcUnitDict.items():
+                if unit.fuStatusTable.busy or unit.justWb:
+                    instrStatusList.append(unit._instruction)
+                    unit.justWb=False
+
+        for instruction in instrStatusList:
 
             curStatusName = None
             if instruction.issueStartCycle is not None and instruction.readOpStartCycle is None:
@@ -96,6 +103,10 @@ class Simulator:
                 curStatusName = "wb"
             else:
                 assert False
+            if instruction.fu.status in [FuStatus.WAR,FuStatus.RAW]:
+                curStatusName = "stall"
+
+
 
             # todo: Am I wrong for (address field)
 

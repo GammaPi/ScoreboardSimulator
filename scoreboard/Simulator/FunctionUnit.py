@@ -178,6 +178,8 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
                 self.fuStatusTableNew.clear()
 
+
+                self.justWb=True
                 print('Note: Finished exec:', self._instruction,'\n')
 
                 self.status = FuStatus.IDLE

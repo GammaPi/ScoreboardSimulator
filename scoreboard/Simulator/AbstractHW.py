@@ -230,6 +230,9 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         self._instruction: InternalInst = None  # The instruction this FU is executing.
         self.stallList = []  # Used to store stall info
 
+        self.justWb = False #Used to submit last WB instruction to UI
+
+
     def _issue(self, curCycle):
         """
         Read operand
