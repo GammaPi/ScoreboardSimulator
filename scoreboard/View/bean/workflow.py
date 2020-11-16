@@ -79,6 +79,9 @@ class Workflow:
     def toUIData(self, dst: int) -> UIData:
         return self.UIDs[dst]
 
+    def lengthOfUIDs(self):
+        return len(self.UIDs)
+
     def workflow(self):
         # writeTestTmpFile()
         # callSimulator()
