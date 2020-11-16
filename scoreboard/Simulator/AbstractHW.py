@@ -186,8 +186,6 @@ class FuStatus(Enum):
     WAR = 3
 
 
-
-
 class AbstractFunctionUnit(metaclass=ABCMeta):
 
     def __init__(self, fuType: Config.FUType, id, dataMemory: AbstractMemory, instrMemory: AbstractMemory,
@@ -264,6 +262,7 @@ class AbstractFunctionUnit(metaclass=ABCMeta):
         """
         pass
 
+
 class StallInfo:
     class Type(Enum):
         RAW = 1
@@ -271,22 +270,24 @@ class StallInfo:
         WAW = 3
         STRUCTURAL = 4
 
-    def __init__(self, stallType: Type, depFrom, depTo):
+    def __init__(self, stallType: Type, depFrom, depFromInstr, depTo, depToInstr):
         """
-        For STRUCTURAL hazard, type(depFrom) is a subclass of  InternalInstr, type(depTo) is a subclass of AbstractFunctionUnit,
-        For WAW,RAW,WAR hazard, type(depFrom) is a subclass of  InternalInstr, type(depTo) is a subclass of AbstractRegister,
+        For STRUCTURAL hazard, type(depFrom) is a subclass of InternalInstr, type(depTo) is a subclass of AbstractFunctionUnit. depToInstr is None
 
-
+        For WAW,RAW,WAR hazard, type(depFrom) is a subclass of AbstractRegister, type(depTo) is a subclass of AbstractRegister.
         """
         self.stallType = stallType
         self.depFrom = depFrom
+        self.depFromInstr = depFromInstr
         self.depTo = depTo
+        self.depToInstr = depToInstr
 
         if self.stallType is StallInfo.Type.STRUCTURAL:
-            assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractFunctionUnit)
+            assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractFunctionUnit) and depToInstr is None
         else:
-            assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractRegister)
-
+            assert isinstance(depFrom, AbstractRegister) and isinstance(depTo, AbstractRegister) \
+                   and depFromInstr is None \
+                   and depToInstr is None
 
     def __str__(self):
         return ''.join([self.stallType.name, ' ', str(self.depFrom), ' ---> ', str(self.depTo)])

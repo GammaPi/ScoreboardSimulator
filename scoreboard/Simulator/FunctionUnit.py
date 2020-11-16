@@ -74,7 +74,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         pass
 
     def tick(self, curCycle: int):
-        self.stallList=[]
+        self.stallList = []
         if self.currentStage != self.nextStage:
             # curState here is previous stage. This if statement determines whether we can switch to a new stage based on scoreboarding criteria
             # If a state change can happen. We'll change state to the next state. And this if will set correct status ahead of the first cycle in that stage.
@@ -88,14 +88,24 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                 else:
                     self.status = FuStatus.RAW
                     if not self.fuStatusTable.rj:
+                        fuRj = self.contolUnit.funcUnitDict[self.fuStatusTable.qj]  # Fu that will write to Rj
+                        conflictInstr = fuRj._instruction
+                        # See issue() in Control unit. rj corresponds to srcReg1
                         self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
-                                                        depFrom=self._instruction.dstReg
-                                                        , depTo=self.contolUnit.funcUnitDict[self.fuStatusTable.qj]._instruction.dstReg))
+                                                        depFrom=self._instruction.src1Reg,
+                                                        depFromInstr=self._instruction,
+                                                        depTo=conflictInstr.dstReg,
+                                                        depToInstr=conflictInstr))
+
                     if not self.fuStatusTable.rk:
+                        fuRk = self.contolUnit.funcUnitDict[self.fuStatusTable.qk]  # Fu that will write to Rj
+                        conflictInstr = fuRk._instruction
+                        # See issue() in Control unit. rk corresponds to srcReg2
                         self.stallList.append(StallInfo(stallType=StallInfo.Type.RAW,
-                                                        depFrom=self._instruction.dstReg
-                                                        , depTo=self.contolUnit.funcUnitDict[
-                                self.fuStatusTable.qk]._instruction.dstReg))
+                                                        depFrom=self._instruction.src2Reg,
+                                                        depFromInstr=self._instruction,
+                                                        depTo=conflictInstr.dstReg,
+                                                        depToInstr=conflictInstr))
 
                     return  # Don't switch to new stage. This FU will Stall one cycle.
             elif self.nextStage == InstrState.EXEC:
@@ -178,9 +188,8 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
                 self.fuStatusTableNew.clear()
 
-
-                self.justWb=True
-                print('Note: Finished exec:', self._instruction,'\n')
+                self.justWb = True
+                print('Note: Finished exec:', self._instruction, '\n')
 
                 self.status = FuStatus.IDLE
 
