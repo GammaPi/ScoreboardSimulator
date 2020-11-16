@@ -84,6 +84,12 @@ class Instruction:
         else:
             assert False
 
+        # Those cycles can differ instruction by instruction
+        self.issueCycles = self.instrType.issueCycles
+        self.readOpCycles = self.instrType.readOpCycles
+        self.execCycles = self.instrType.execCycles
+        self.wbCycles = self.instrType.wbCycles
+
 
 class InternalInst(Instruction):
     '''
@@ -113,6 +119,11 @@ class InternalInst(Instruction):
         self.execFinishCycle = None
         self.wbStartCycle = None
         self.wbFinishCycle = None
+
+        self.issueCycles = instrFromMemory.issueCycles
+        self.readOpCycles = instrFromMemory.readOpCycles
+        self.execCycles = instrFromMemory.execCycles
+        self.wbCycles = instrFromMemory.wbCycles
 
     def __str__(self):
         return str({'Type': self.instrType.name, 'IS': self.issueFinishCycle, 'OP': self.readOpFinishCycle,

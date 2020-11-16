@@ -41,23 +41,23 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
         # This state machine should be removed. We should let issue readop exec wb function control those stage because an acutal machine don't record each stage take how much time. It just naturally execute stage after stage.
         # self.instrStateMachine = MultiCycleDFA(
         #     [(InstrState.START, InstrState.ISSUE, 1),
-        #      (InstrState.ISSUE, InstrState.READOP, self._instruction.instrType.issueCycles),
-        #      (InstrState.READOP, InstrState.EXEC, self._instruction.instrType.readOpCycles),
-        #      (InstrState.EXEC, InstrState.WB, self._instruction.instrType.execCycles),
-        #      (InstrState.WB, InstrState.FINISH, self._instruction.instrType.wbCycles)], initialState=InstrState.START)
+        #      (InstrState.ISSUE, InstrState.READOP, self._instruction.issueCycles),
+        #      (InstrState.READOP, InstrState.EXEC, self._instruction.readOpCycles),
+        #      (InstrState.EXEC, InstrState.WB, self._instruction.execCycles),
+        #      (InstrState.WB, InstrState.FINISH, self._instruction.wbCycles)], initialState=InstrState.START)
 
         self.currentStage = InstrState.START
         self.nextStage = InstrState.ISSUE
 
         # Use state mache to simulate step-by-step execution for issue,readop,exec,wb
         self.issueStateMachine = MultiCycleDFA(
-            [(False, True, self._instruction.instrType.issueCycles)], initialState=False)
+            [(False, True, self._instruction.issueCycles)], initialState=False)
         self.readOpStateMachine = MultiCycleDFA(
-            [(False, True, self._instruction.instrType.readOpCycles)], initialState=False)
+            [(False, True, self._instruction.readOpCycles)], initialState=False)
         self.execStateMachine = MultiCycleDFA(
-            [(False, True, self._instruction.instrType.execCycles)], initialState=False)
+            [(False, True, self._instruction.execCycles)], initialState=False)
         self.wbStateMachine = MultiCycleDFA(
-            [(False, True, self._instruction.instrType.wbCycles)], initialState=False)
+            [(False, True, self._instruction.wbCycles)], initialState=False)
 
         self.prevState = InstrState.ISSUE
 
