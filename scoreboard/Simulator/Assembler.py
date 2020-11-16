@@ -49,9 +49,9 @@ class Assembler:
                                    src2Reg=None, immed=symbols[2])
         elif curInstrType == Config.InstrType.S_D:
             # S.D Fsrc1,imm(Rdst)
-            curInstr = Instruction(instrType=curInstrType, dstReg=IntRegister(symbols[3]),
+            curInstr = Instruction(instrType=curInstrType, dstReg=None,
                                    src1Reg=FloatRegister(symbols[1]),
-                                   src2Reg=None, immed=symbols[2])
+                                   src2Reg=IntRegister(symbols[3]), immed=symbols[2])
         elif curInstrType in [Config.InstrType.DADD, Config.InstrType.DSUB, Config.InstrType.DMUL,
                               Config.InstrType.DDIV]:
             # DADD Rdst,Rsrc1,Rsrc2

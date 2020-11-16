@@ -41,7 +41,7 @@ def opOP(name: str) -> str:
 
 
 def opRD(name: str) -> str:
-    if str == "":
+    if name == "":
         return "00000"
     number = int("".join(filter(str.isdigit, name)))
     return numberToBinaryInLength(number, 5)

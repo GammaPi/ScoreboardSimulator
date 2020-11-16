@@ -114,36 +114,38 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
             elif self.nextStage == InstrState.WB:
                 # EXEC -> WB
                 canWB = True
-                for otherFU in self.contolUnit.funcUnitDict.values():
-                    if otherFU.id != self.id:
-                        # ∀f {(Fj[f]≠Fi[FU] OR Rj[f]=No) AND (Fk[f]≠Fi[FU] OR Rk[f]=No)
-                        otherFuRjDontNeedReadDst = (
-                                otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False)  # If dst is other fu's rj and reading is not complete
-                        otherFuRkDontNeedReadDst = (
-                                otherFU.fuStatusTable.fk != self.fuStatusTable.fi or otherFU.fuStatusTable.rk == False)  # If dst is other fu's rk and reading is not complete
+                if self.fuStatusTable.fi:
+                    #Compare when fi is not None (eg SD has no destination address)
+                    for otherFU in self.contolUnit.funcUnitDict.values():
+                        if otherFU.id != self.id:
+                            # ∀f {(Fj[f]≠Fi[FU] OR Rj[f]=No) AND (Fk[f]≠Fi[FU] OR Rk[f]=No)
+                            otherFuRjDontNeedReadDst = (
+                                    otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False)  # If dst is other fu's rj and reading is not complete
+                            otherFuRkDontNeedReadDst = (
+                                    otherFU.fuStatusTable.fk != self.fuStatusTable.fi or otherFU.fuStatusTable.rk == False)  # If dst is other fu's rk and reading is not complete
 
-                        if (otherFuRjDontNeedReadDst and otherFuRkDontNeedReadDst):
-                            pass
-                        else:
-                            canWB = False
+                            if (otherFuRjDontNeedReadDst and otherFuRkDontNeedReadDst):
+                                pass
+                            else:
+                                canWB = False
 
-                            # Record this RAW stall to stallList
-                            if not otherFuRjDontNeedReadDst:
-                                conflictInstr: InternalInst = otherFU._instruction
-                                # See issue() in Control unit. rj corresponds to srcReg1
-                                self.stallList.append(StallInfo(stallType=StallInfo.Type.WAR,
-                                                                depFrom=self._instruction.dstReg,
-                                                                depFromInstr=self._instruction,
-                                                                depTo=conflictInstr.src1Reg,
-                                                                depToInstr=conflictInstr))
-                            if not otherFuRkDontNeedReadDst:
-                                conflictInstr: InternalInst = otherFU._instruction
-                                # See issue() in Control unit. rk corresponds to srcReg2
-                                self.stallList.append(StallInfo(stallType=StallInfo.Type.WAR,
-                                                                depFrom=self._instruction.dstReg,
-                                                                depFromInstr=self._instruction,
-                                                                depTo=conflictInstr.src2Reg,
-                                                                depToInstr=conflictInstr))
+                                # Record this RAW stall to stallList
+                                if not otherFuRjDontNeedReadDst:
+                                    conflictInstr: InternalInst = otherFU._instruction
+                                    # See issue() in Control unit. rj corresponds to srcReg1
+                                    self.stallList.append(StallInfo(stallType=StallInfo.Type.WAR,
+                                                                    depFrom=self._instruction.dstReg,
+                                                                    depFromInstr=self._instruction,
+                                                                    depTo=conflictInstr.src1Reg,
+                                                                    depToInstr=conflictInstr))
+                                if not otherFuRkDontNeedReadDst:
+                                    conflictInstr: InternalInst = otherFU._instruction
+                                    # See issue() in Control unit. rk corresponds to srcReg2
+                                    self.stallList.append(StallInfo(stallType=StallInfo.Type.WAR,
+                                                                    depFrom=self._instruction.dstReg,
+                                                                    depFromInstr=self._instruction,
+                                                                    depTo=conflictInstr.src2Reg,
+                                                                    depToInstr=conflictInstr))
 
                 if self.dataBus.BUSY == True:
                     canWB = False
@@ -315,7 +317,7 @@ class IntFU(PsedoFunctionUnit):
                 self.A, self.B = self._instruction.immed, self._instruction.src1Reg.read()
             elif self._instruction.instrType in [Config.InstrType.SW, Config.InstrType.S_D]:
                 # self._outputVal = self.A + self.B  # imm + dst
-                self.A, self.B = self._instruction.immed, self._instruction.dstReg.read()
+                self.A, self.B = self._instruction.immed, self._instruction.src2Reg.read()
             elif self._instruction.instrType in [Config.InstrType.DADD,
                                                  Config.InstrType.DSUB,
                                                  Config.InstrType.BEQ,
