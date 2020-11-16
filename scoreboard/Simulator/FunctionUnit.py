@@ -166,6 +166,7 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
             self._writeBack(curCycle)
             # Mark the last cycle for Write Back. Change related table.
 
+        # Modify status table at the end of READOP and WB cycle
         if self.currentStage != self.nextStage:
             revInThisCycle = {}
 
@@ -204,10 +205,20 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                 except Exception as e:
                     self.contolUnit.regStatusTableNew = copy.copy(self.contolUnit.regStatusTable)
 
-                self.contolUnit.regStatusTableNew[self.fuStatusTable.fi.name] = None
+                # self.contolUnit.regStatusTableNew[self.fuStatusTable.fi.name] = None
+
+                # self.fuStatusTableNew.clear()
+
+                # self.justWb = True
+                # print('Note: Finished exec:', self._instruction, '\n')
+
+                # self.status = FuStatus.IDLE
+
+            if self.nextStage is None:
+                if self.fuStatusTable.fi:
+                    self.contolUnit.regStatusTableNew[self.fuStatusTable.fi.name] = None
 
                 self.fuStatusTableNew.clear()
-
                 self.justWb = True
                 print('Note: Finished exec:', self._instruction, '\n')
 
@@ -235,6 +246,8 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
 
     def _branchTaken(self, targetAddress):
         self.PC.write(targetAddress)
+        # Clear branch flag. Let CU issue instr from this new place
+        self.contolUnit.branch=False
 
 
 class IntFU(PsedoFunctionUnit):
@@ -269,6 +282,10 @@ class IntFU(PsedoFunctionUnit):
 
             if self._instruction.instrType == Config.InstrType.J:
                 self.nextStage = InstrState.EXEC  # J don't need read operator
+                # Mark branch flag. Let CU stop issue another instruction until directoin is known.
+
+            if self._instruction.instrType in [Config.InstrType.BEQ,Config.InstrType.BNE,Config.InstrType.BEQZ,Config.InstrType.BNEZ,Config.InstrType.J]:
+                self.contolUnit.branch=True
 
     def _readOp(self, curCycle):
         # Update readop cycle
@@ -295,7 +312,7 @@ class IntFU(PsedoFunctionUnit):
                                                  Config.InstrType.BNE]:
                 # self._outputVal = self.A + self.B  # src1 + src2
                 self.A, self.B = self._instruction.src1Reg.read(), self._instruction.src2Reg.read()
-            elif self._instruction.instrType == [Config.InstrType.DADDI, Config.InstrType.DSUBI]:
+            elif self._instruction.instrType in [Config.InstrType.DADDI, Config.InstrType.DSUBI]:
                 # self._outputVal = self.A + self.B  # src1+immed
                 self.A, self.B = self._instruction.src1Reg.read(), self._instruction.immed
             elif self._instruction.instrType in [Config.InstrType.BEQZ, Config.InstrType.BNEZ]:
@@ -355,6 +372,7 @@ class IntFU(PsedoFunctionUnit):
                     self._branchTaken(self._instruction.immed)
                 self.nextStage = None  # Branch don't have WB stage.
             elif self._instruction.instrType == Config.InstrType.J:
+                self._branchTaken(self._instruction.immed)
                 self.nextStage = None
             else:
                 assert False

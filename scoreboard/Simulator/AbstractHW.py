@@ -286,8 +286,8 @@ class StallInfo:
             assert isinstance(depFrom, InternalInst) and isinstance(depTo, AbstractFunctionUnit) and depToInstr is None
         else:
             assert isinstance(depFrom, AbstractRegister) and isinstance(depTo, AbstractRegister) \
-                   and isinstance(depFromInstr,InternalInst) and depFromInstr is not None \
-                   and isinstance(depToInstr,InternalInst) and depToInstr is not None
+                   and isinstance(depFromInstr, InternalInst) and depFromInstr is not None \
+                   and isinstance(depToInstr, InternalInst) and depToInstr is not None
 
     def __str__(self):
         return ''.join([self.stallType.name, ' ', str(self.depFrom), ' ---> ', str(self.depTo)])

@@ -6,10 +6,10 @@ import json
 from View.ui.mainwindow import Ui_MainWindow
 
 if __name__ == '__main__':
-    assembler = Assembler("test2.in")
+    assembler = Assembler("testLec9ScoreboardingExample.in")
     simulator = Simulator()
 
-    #todo: specify instruction starting point.Currently assume 0.
+    # todo: specify instruction starting point.Currently assume 0.
     # Write instructions into instruction memory.
     for i in range(len(assembler.instructions)):
         simulator.instrMemory.write(i, assembler.instructions[i])
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         simulator.dataMemory.write(i, i)
 
     # Keep calling tick until finished
-    while not simulator.finished():
+    while not simulator.finished() and simulator.controlUnit.cycleCounter < 1000:
         simulator.tick()
 
     with open("tmp", 'w') as f:

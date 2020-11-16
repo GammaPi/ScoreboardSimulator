@@ -1,5 +1,4 @@
 L.D F6, 34(R2)
-MUL.D F6, F2, F4
 L.D F2, 45(R3)
 MUL.D F0, F2, F4
 SUB.D F8, F6, F2

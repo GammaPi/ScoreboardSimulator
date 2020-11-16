@@ -56,6 +56,8 @@ class ControlUnit:
 
         self.halt = False
 
+        self.branch=False
+
         self._outputVal = None
 
         self.stallList = []  # (Stall Type, From, To)
@@ -86,7 +88,9 @@ class ControlUnit:
                         break
                     else:
                         strHazardFU.append(funcUnit)
-            wawHazard = self.regStatusTable[instr.dstReg.name] is not None
+            wawHazard=False
+            if instr.dstReg:
+                wawHazard = self.regStatusTable[instr.dstReg.name] is not None
 
             rltCanIssue = (availableFu != None and not wawHazard)
 
@@ -172,7 +176,7 @@ class ControlUnit:
 
         # Read the next instruction.
         curInstr = None
-        if not self.halt:
+        if not self.halt and not self.branch:
             curInstr: InternalInst = fetchInstr()
             assert curInstr != None
 
@@ -182,7 +186,8 @@ class ControlUnit:
             self.PC.write(self.PC.read() + 1)
         else:
             # See if we can find one available function unit that can execute curInstr. If so, issue it.
-            if not self.halt:
+            # If we meet HALT or branch, we shouldn't issue new instruction
+            if not self.halt and not self.branch:
                 avaiableFu = canIssue(curInstr)
                 if avaiableFu:
                     issue(curInstr, avaiableFu)
