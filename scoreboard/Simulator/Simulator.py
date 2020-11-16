@@ -203,13 +203,14 @@ class Simulator:
             if stallInfo.stallType == StallInfo.Type.STRUCTURAL:
                 stallList.append(
                     stall.newStall(type=stallInfo.stallType.name,
-                                   dependToRegister=str(stallInfo.depTo)+"(FU)",
-                                   dependFromRegister=str(stallInfo.depFrom)+"(instr addr)"))
+                                   dependToRegister='FU[%s]' % (str(stallInfo.depTo.id)),
+                                   dependFromRegister='Instr[%d]' % (stallInfo.depFrom.address)))
             else:
                 stallList.append(
                     stall.newStall(type=stallInfo.stallType.name,
-                                   dependToRegister=str(stallInfo.depTo) + "(Reg)",
-                                   dependFromRegister=str(stallInfo.depFrom) + "(Reg)"))
+                                   dependToRegister='Reg[%s] Instr[%d]' % (str(stallInfo.depTo.name), stallInfo.depToInstr.address),
+                                   dependFromRegister='Reg[%s] Instr[%d]' % (str(stallInfo.depFrom.name) ,stallInfo.depFromInstr.address)
+                                   ))
         frame.stallList = stallList
 
         self.frameList.append(frame)

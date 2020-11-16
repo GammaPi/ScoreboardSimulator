@@ -79,12 +79,13 @@ class ControlUnit:
             # This list will be empty if availableFu!=None)
 
             for funcUnit in self.funcUnitDict.values():
-                if instr.instrType.funcUnit == funcUnit.type and (not funcUnit.fuStatusTable.busy):
-                    availableFu = funcUnit
-                    strHazardFU = []
-                    break
-                else:
-                    strHazardFU.append(funcUnit)
+                if instr.instrType.funcUnit == funcUnit.type:
+                    if not funcUnit.fuStatusTable.busy:
+                        availableFu = funcUnit
+                        strHazardFU = []
+                        break
+                    else:
+                        strHazardFU.append(funcUnit)
             wawHazard = self.regStatusTable[instr.dstReg.name] is not None
 
             rltCanIssue = (availableFu != None and not wawHazard)
@@ -95,16 +96,20 @@ class ControlUnit:
                     # Structural Hazard
                     for problemFu in strHazardFU:
                         self.stallList.append(StallInfo(stallType=StallInfo.Type.STRUCTURAL,
-                                                        depFrom=instr
-                                                        , depTo=problemFu))
+                                                        depFrom=instr,
+                                                        depFromInstr=None,
+                                                        depTo=problemFu,
+                                                        depToInstr=None))
 
                 if wawHazard:
                     # The id of function unit executing that conflict instruction
                     fuIdWAW = self.regStatusTable[instr.dstReg.name]
                     conflictInstr = self.funcUnitDict[fuIdWAW]._instruction
                     self.stallList.append(StallInfo(stallType=StallInfo.Type.WAW,
-                                                    depFrom=instr
-                                                    , depTo=conflictInstr.dstReg))
+                                                    depFrom=instr.dstReg,
+                                                    depFromInstr=instr,
+                                                    depTo=conflictInstr.dstReg,
+                                                    depToInstr=conflictInstr))
                 return None
             else:
                 # Can Issue, return corresponding fu

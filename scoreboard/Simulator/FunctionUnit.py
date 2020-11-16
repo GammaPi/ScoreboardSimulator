@@ -117,18 +117,38 @@ class PsedoFunctionUnit(AbstractFunctionUnit):
                 for otherFU in self.contolUnit.funcUnitDict.values():
                     if otherFU.id != self.id:
                         # ∀f {(Fj[f]≠Fi[FU] OR Rj[f]=No) AND (Fk[f]≠Fi[FU] OR Rk[f]=No)
-                        if ((otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False) and
-                                (otherFU.fuStatusTable.fk != self.fuStatusTable.fi or otherFU.fuStatusTable.rk == False)
-                        ):
+                        otherFuRjDontNeedReadDst = (
+                                    otherFU.fuStatusTable.fj != self.fuStatusTable.fi or otherFU.fuStatusTable.rj == False)  # If dst is other fu's rj and reading is not complete
+                        otherFuRkDontNeedReadDst = (
+                                    otherFU.fuStatusTable.fk != self.fuStatusTable.fi or otherFU.fuStatusTable.rk == False)  # If dst is other fu's rk and reading is not complete
+
+                        if (otherFuRjDontNeedReadDst and otherFuRkDontNeedReadDst):
                             pass
                         else:
                             canWB = False
+
+                            # Record this RAW stall to stallList
+                            if not otherFuRjDontNeedReadDst:
+                                conflictInstr: InternalInst = otherFU._instruction
+                                # See issue() in Control unit. rj corresponds to srcReg1
+                                self.stallList.append(StallInfo(stallType=StallInfo.Type.WAR,
+                                                                depFrom=self._instruction.dstReg,
+                                                                depFromInstr=self._instruction,
+                                                                depTo=conflictInstr.src1Reg,
+                                                                depToInstr=conflictInstr))
+                            if not otherFuRkDontNeedReadDst:
+                                conflictInstr: InternalInst = otherFU._instruction
+                                # See issue() in Control unit. rk corresponds to srcReg2
+                                self.stallList.append(StallInfo(stallType=StallInfo.Type.WAR,
+                                                                depFrom=self._instruction.dstReg,
+                                                                depFromInstr=self._instruction,
+                                                                depTo=conflictInstr.src2Reg,
+                                                                depToInstr=conflictInstr))
                 if canWB:
                     # Scoreborading Write Back
                     self.currentStage = self.nextStage
                 else:
                     self.status = FuStatus.WAR
-                    # todo: detect war hazard
                     return  # This FU will Stall one cycle.
 
         # If we come to this place, it means we need to execute a cycle, and there are no more hazard
