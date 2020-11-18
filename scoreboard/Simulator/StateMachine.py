@@ -27,7 +27,11 @@ class MultiCycleDFA(AbstractStateMachine):
 
     def next(self):
         self.counter += 1
-        toState, transferCycle = self.adjTable[self.curState]
+        if self.curState in self.adjTable:
+            toState, transferCycle = self.adjTable[self.curState]
+        else:
+            self.curState=None
+            return None
         if self.counter == transferCycle:
             self.counter = 0
             self.curState = toState
